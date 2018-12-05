@@ -39,31 +39,16 @@ $camp=DB::table('t_campus')->select('state_id')->where('CAMPUS_ID',Auth::user()-
 
 $exam=new ExamCollection(
 						Exam::
-						// leftjoin('1_exam_gcsp_id as b','1_exam_admin_create_exam.sl','=','b.test_sl')
-						 // ->where('b.GROUP_ID','=',$request->GROUP_ID)
-						 // ->where('b.CLASS_ID','=',$request->CLASS_ID)
-						 // ->where('b.STREAM_ID','=',$request->STREAM_ID)
-						 // ->where('b.PROGRAM_ID','=',$request->PROGRAM_ID)
 						select('*')
                               ->whereRaw('FIND_IN_SET('.$camp[0]->state_id.',1_exam_admin_create_exam.state_id)')
                               ->distinct()
                               ->get()
                           );
 
-			  // $exam=new ExamCollection(DB::select('select sl from 1_exam_admin_create_exam as ea where  ea.STATE_ID LIKE "%41%"'));
-				// $camp=DB::table('t_campus')->where('CAMPUS_ID',Auth::user()->CAMPUS_ID)->get();
-				// return $camp[0]->CAMPUS_ID;
-			  // $exam=new ExamCollection(Exam::select('*')
-     //                          ->where('state_id','like','%'.$camp[0]->CAMPUS_ID.'%')->paginate());
 			}
 			else{
 				 $exam=new ExamCollection(
-				 		Exam::
-				 		// leftjoin('1_exam_gcsp_id as b','1_exam_admin_create_exam.sl','=','b.test_sl')
-						 // ->where('b.GROUP_ID','=',$request->GROUP_ID)
-						 // ->where('b.CLASS_ID','=',$request->CLASS_ID)
-						 // ->where('b.STREAM_ID','=',$request->STREAM_ID)
-						 // ->where('b.PROGRAM_ID','=',$request->PROGRAM_ID)
+				 		Exam::		 		
 						select('*')
                               ->whereIn('1_exam_admin_create_exam.state_id',function($query){
                                 $query->select('1_exam_admin_create_exam.state_id')
