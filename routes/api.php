@@ -20,19 +20,21 @@ use App\Employee;
 use App\Http\Resources\Employee as UserResource;
 
 Route::get('/user', function () {
-    return new UserResource(Employee::find(1));
+    return DB::table('tokens')->get();
 });
 // Route::group([ 'prefix' => 'token' ], function () {
 	Route::post('userLogin', 'AuthController@tokenAuthAttempt');
 	Route::post('resultLogin', 'ResultController@login');
 	Route::post('uploadResults','AuthController@upload');
-	Route::group([ 'middleware' => 'auth:token' ], function () {
-		
+	Route::group([ 'middleware' => 'auth:token' ], function () {		
+		Route::post('total_percentage','ResultController@total_percentage');
+		Route::post('examlist','ResultController@examlist');
 		Route::get('groups','BaseController@groups');
 		Route::get('class_years/{group_id}','BaseController@class_year_wrt_group');
 		Route::get('streams/{group_id}/{class_id}','BaseController@stream_wrt_group_class_year');
 		Route::get('programs/{stream_id}/{class_id}','BaseController@programs_wrt_stream_class_year');
-		Route::get('sections/{program_id}/{stream_id}/{class_id}','BaseController@sections_programs_wrt_stream_class_year');
+		Route::get('sections/{program_id}/{stream_id}/{class_id}',
+			'BaseController@sections_programs_wrt_stream_class_year');
 		Route::post('getExamData', 'AuthController@tokenAuthCheck'); 
 		Route::post('uploadTemplate','AuthController@templateData');
 		Route::post('deleteTemplate','AuthController@templateDelete');

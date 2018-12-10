@@ -2,6 +2,8 @@
 
 namespace App;
 use App\Employee;
+use App\BaseModels\Student;
+use App\Tparent;
 use Carbon\Carbon;
 use App\Campus;
 use App\Token;
@@ -23,6 +25,12 @@ class Token extends Model
 
     	public function user () {
 			return $this->belongsTo(Employee::class, 'user_id', 'id');
+		}
+		public function student () {
+		return $this->belongsTo(Student::class, 'user_id', 'ADM_NO');
+		}
+		public function parent () {
+			return $this->belongsTo(Tparent::class, 'user_id', 'ADM_NO');
 		}
 		public static function examdata($data){
 

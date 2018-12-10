@@ -25,7 +25,8 @@ class AccessTokenGuard implements Guard
 		$this->storageKey = isset($configuration['storage_key']) ? $configuration['storage_key'] : 'access_token';
 	}
 
-	public function user () {
+	public function user ()
+	 {
 		if (!is_null($this->user)) {
 			return $this->user;
 		}

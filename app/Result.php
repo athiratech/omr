@@ -92,8 +92,7 @@ class Result extends Authenticatable
             }
         }
                   elseif(Auth::guard('t_student')->id()){
-            //         $client = Student::whereRaw('ADM_NO = ?',Auth::guard('t_student')->id());
-            // $uc=$client;
+          
                 $details=[
                     'NAME'=>Auth::guard('t_student')->user()->NAME,
                     'USER_NAME'=>Auth::guard('t_student')->user()->USER_NAME,
@@ -113,9 +112,7 @@ class Result extends Authenticatable
                   ->select('roles.role')
                   ->get();
                    $token=Token::whereUser_id(Auth::guard('t_student')->id())->pluck('access_token');
-           //    if($uc){
-           //   $msg='Token expired and New Token generated';
-           // }
+         
             if (!$token->count()) {
                 $str=str_random(10);
                 $token=Token::create([
@@ -136,8 +133,6 @@ class Result extends Authenticatable
             }
            }
            else{
-                  // $client = Tparent::whereRaw('ADM_NO = ?',Auth::guard('tparent')->id());
-            // $uc=$client;
             $student=Parent_details::where('ADM_NO',Auth::guard('tparent')->id())->limit(1)->get();
              $details=[
                     'NAME'=>$student[0]->PARENT_NAME,
@@ -146,17 +141,8 @@ class Result extends Authenticatable
                     'CAMPUS_ID'=>Auth::guard('tparent')->user()->CAMPUS_ID,
                     'YEAR'=>Auth::guard('tparent')->user()->CLASS_ID
                           ];
-                // $role=DB::table('roles')                  
-                //   ->join('user_roles','roles.roll_id','=','user_roles.ROLL_ID')
-                //   ->join('employees','employees.payroll_id','=','user_roles.payroll_id')
-                //   ->where('employees.id','=',Auth::guard('tparent')->id())
-                //   ->select('roles.role')
-                //   ->get();
                    $token=Token::whereUser_id(Auth::guard('tparent')->id())->pluck('access_token');
-                 
-           //    if($uc){
-           //   $msg='Token expired and New Token generated';
-           // }
+               
             if (!$token->count()) {
                 $str=str_random(10);
                 $token=Token::create([

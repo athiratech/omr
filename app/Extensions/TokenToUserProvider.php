@@ -3,6 +3,7 @@ namespace App\Extensions;
 
 use App\Token;
 use App\User;
+use App\BaseModels\Student;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Contracts\Auth\UserProvider;
@@ -27,8 +28,19 @@ class TokenToUserProvider implements UserProvider
 		$uc=$this->token->where($identifier, $token)->where('created_at', '<', Carbon::now()->subDay())->delete();
   
 		$token = $this->token->with('user')->where($identifier, $token)->first();
+		// if(!count($token)){
+		// 	return null;
+		// }
+		if(!$token->user){
+			if(!$token->student){
+			return $token && $token->user || $token->parent ? $token->parent : null;
+		}
+		return $token && $token->user || $token->student ? $token->student : null;
+		
 
-		return $token && $token->user ? $token->user : null;
+		}
+
+		return $token && $token->user || $token->student ? $token->user : null;
 	}
 
 	public function updateRememberToken (Authenticatable $user, $token) {
