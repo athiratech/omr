@@ -3,6 +3,7 @@ namespace App\Extensions;
 
 use App\Token;
 use App\User;
+use App\Employee;
 use App\BaseModels\Student;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -27,20 +28,24 @@ class TokenToUserProvider implements UserProvider
 	public function retrieveByToken ($identifier, $token) {
 		$uc=$this->token->where($identifier, $token)->where('created_at', '<', Carbon::now()->subDay())->delete();
   
-		$token = $this->token->with('user')->where($identifier, $token)->first();
+		$token =Token::where('access_token',$token)->first();
 		// if(!count($token)){
-		// 	return null;
 		// }
-		if(!$token->user){
-			if(!$token->student){
-			return $token && $token->user || $token->parent ? $token->parent : null;
+		if(!Employee::whereRaw('id ="'.$token->user_id.'"')->first()){
+			if(!Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->first()){
+			// return Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->get();
+				// return $token->parent;
+			return Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->first();
+
+			
 		}
-		return $token && $token->user || $token->student ? $token->student : null;
+			return Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->first();
 		
+			// return $token->student;
 
 		}
 
-		return $token && $token->user || $token->student ? $token->user : null;
+		return $token->user;
 	}
 
 	public function updateRememberToken (Authenticatable $user, $token) {

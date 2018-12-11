@@ -31,7 +31,7 @@ class Student extends Authenticatable
      */
 
      public function tokens() {
-        return $this->hasMany(Token::class, 'user_id', 'ADM_NO');
+        return $this->belongsTo(Token::class, 'user_id', 'ADM_NO');
     }
     public function stream()
     {

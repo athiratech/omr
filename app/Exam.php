@@ -3,6 +3,7 @@
 namespace App;
 use Auth;
 use DB;
+use App\Campus;
 use Illuminate\Database\Eloquent\Model;
 include_once('z_ias_format.php');
 class Exam extends Model
@@ -15,25 +16,34 @@ class Exam extends Model
   	$calculation="";
   	$marklist=array();	
   	// return base_path();
-  	$stud=Student::join('t_campus as tc','t_student.CAMPUS_ID','=','tc.CAMPUS_ID')
-  					->where('t_student.ADM_NO',Auth::id())->select('t_student.CAMPUS_ID','tc.STATE_ID')
+  	// return Auth::id();
+  	$stud=Campus::whereRaw('CAMPUS_ID ='.Auth::user()->CAMPUS_ID)->select('STATE_ID')
   					->get();
+
   	$exam=static::whereRaw('FIND_IN_SET(?,state_id)', $stud[0]->STATE_ID)
-  				->where('result_generated1_no0',1)  				
-  					// ->where('test_type',$data->test_type_id)
-  				->select('mode','rank_generated_type','max_marks','sl','test_code','model_year','paper','omr_scanning_type','subject_string_final')->get();
-  	// if(isset($data->test_type_id))
-  	// 	$exam->where('test_type',$data->test_type_id)->get();
+  				->whereRaw('result_generated1_no0 =1')  	  					
+  				->select('mode','rank_generated_type','max_marks','sl','test_code','model_year','paper','omr_scanning_type','subject_string_final')
+  				;
+  	if(isset($data->test_type_id))
+  		$exam->where('test_type',$data->test_type_id);
+  	else
+  		$exam->where('test_type','1');
+
+  	if(isset($data->mode_id))
+  		$exam->where('mode',$data->mode_id);
+  	if(isset($data->date))
+  		$exam->where('start_date','like',$data->date.'%');
+  	$exam=$exam->get();
 
   	foreach ($exam as $key => $value) 
   	{
 
-  		$subject_marks=Mode::where('test_mode_id',$value->mode)
+  		$subject_marks=Mode::whereRaw('test_mode_id ='.$value->mode)
   								->get();
 
   		$marklist[$key]=DB::table($subject_marks[0]->marks_upload_final_table_name)
-  					->where('STUD_ID',Auth::id())
-  					->where('test_code_sl_id',$value->sl)
+  					->whereRaw('STUD_ID ="'.Auth::id().'"')
+  					->whereRaw('test_code_sl_id ="'.$value->sl.'"')
   					->get();
   		foreach ($marklist[$key] as $key1 => $value1) {
   			$value1->{'max_marks'}=explode(',',$value->max_marks);
@@ -52,7 +62,7 @@ class Exam extends Model
   	for ($i=0; $i <count($marklist) ; $i++) { 
 
   		if(isset($marklist[$i][0])){
-			$calculation=static::calculation($marklist[$i]);  		
+			$calculation=static::calculation1($marklist[$i]);  		
   			if(array_key_exists($marklist[$i][0]->mode_name, $mode)){
   				$sum=$mode[$marklist[$i][0]->mode_name]+$calculation;
   				$mode[$marklist[$i][0]->mode_name]=$sum/2;
@@ -86,6 +96,14 @@ class Exam extends Model
   		$sum = array_sum($percentage)/count($percentage);
   		return $sum;
   	}
+  }
+  public static function calculation1($data){
+
+  	foreach ($data as $key => $value) {
+  		$sum=array_sum($value->max_marks);
+  		return ($value->TOTAL/$sum)*100;
+  	}
+
   }
   public static function type($data){
   	$out=static::total($data)['Mode'];

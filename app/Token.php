@@ -24,13 +24,13 @@ class Token extends Model
     protected $fillable=['user_id','expiry_time','access_token'];
 
     	public function user () {
-			return $this->belongsTo(Employee::class, 'user_id', 'id');
+			return $this->belongsTo(Employee::class, 'user_id', 'id')->whereRaw('id !=""');
 		}
 		public function student () {
-		return $this->belongsTo(Student::class, 'user_id', 'ADM_NO');
+		return $this->belongsTo(Student::class, 'user_id', 'ADM_NO')->whereRaw('ADM_NO !=""');
 		}
 		public function parent () {
-			return $this->belongsTo(Tparent::class, 'user_id', 'ADM_NO');
+			return $this->belongsTo(Tparent::class, 'user_id', 'ADM_NO')->whereRaw('ADM_NO !=""');
 		}
 		public static function examdata($data){
 
