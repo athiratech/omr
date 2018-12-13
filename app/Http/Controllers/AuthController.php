@@ -22,6 +22,8 @@ use App\Http\Resources\Employee as UserResource;
 class AuthController extends Controller
 {
 	public function tokenAuthCheck (Request $request) {
+		
+		// return Auth::id();
 		$msg="This is old token";
 		if(Auth::id()){
 			  $role=DB::table('roles')
