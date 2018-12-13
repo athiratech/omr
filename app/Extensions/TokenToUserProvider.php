@@ -30,6 +30,7 @@ class TokenToUserProvider implements UserProvider
   
 		$token =Token::where('access_token',$token)->first();
 		// if(!count($token)){
+		// 	return false;
 		// }
 		if(!Employee::whereRaw('id ="'.$token->user_id.'"')->first()){
 			if(!Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->first()){
@@ -45,6 +46,7 @@ class TokenToUserProvider implements UserProvider
 
 		}
 
+		// return Employee::whereRaw('PAYROLL_ID ="'.$token->user_id.'"')->first();
 		return $token->user;
 	}
 
