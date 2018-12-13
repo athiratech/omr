@@ -44,9 +44,10 @@ class Exam extends Model
   		$marklist[$key]=DB::table($subject_marks[0]->marks_upload_final_table_name)
   					->whereRaw('STUD_ID ="'.Auth::id().'"')
   					->whereRaw('test_code_sl_id ="'.$value->sl.'"')
+            ->select('test_code_sl_id','STUD_ID','TOTAL','STREAM_RANK','PROGRAM_RANK','SEC_RANK','CAMP_RANK','CITY_RANK','DISTRICT_RANK','STATE_RANK','ALL_INDIA_RANK')
   					->get();
   		foreach ($marklist[$key] as $key1 => $value1) {
-  			$value1->{'max_marks'}=explode(',',$value->max_marks);
+  			$value1->{'max_marks'}=array_sum(explode(',',$value->max_marks));
   			$value1->{'rank_generated_type'}=explode(',',$value->rank_generated_type);
   			$value1->{'omr_scanning_type'}=$value->omr_scanning_type;
   			if($value->omr_scanning_type=="non_advanced")
@@ -100,8 +101,8 @@ class Exam extends Model
   public static function calculation1($data){
 
   	foreach ($data as $key => $value) {
-  		$sum=array_sum($value->max_marks);
-  		return ($value->TOTAL/$sum)*100;
+  		// $sum=array_sum($value->max_marks);
+  		return ($value->TOTAL/$value->max_marks)*100;
   	}
 
   }
@@ -110,7 +111,11 @@ class Exam extends Model
   	return $out;
   }
   public static function examlist($data){
-  	$out=static::total($data)['Marklist'];
+    $out=static::total($data)['Marklist'];
+    return $out;
+  }
+  public static function test_type_list($data){
+  	$out=DB::table('0_test_types')->select('test_type_id','test_type_name')->get();
   	return $out;
   }
 }

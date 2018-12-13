@@ -29,6 +29,7 @@ Route::get('/user', function () {
 	Route::group([ 'middleware' => 'auth:token' ], function () {		
 		Route::post('total_percentage','ResultController@total_percentage');
 		Route::post('examlist','ResultController@examlist');
+		Route::post('test_type_list','ResultController@test_type_list');
 		Route::get('groups','BaseController@groups');
 		Route::get('class_years/{group_id}','BaseController@class_year_wrt_group');
 		Route::get('streams/{group_id}/{class_id}','BaseController@stream_wrt_group_class_year');
