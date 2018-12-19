@@ -6,7 +6,7 @@ use App\Type;
 use App\Modesyear;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-    include('status.php');
+    include($_SERVER['DOCUMENT_ROOT'].'/sri_chaitanya/College/3_view_created_exam/status.php');
 class Exam extends JsonResource
 {
     /**
