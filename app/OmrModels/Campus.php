@@ -1,14 +1,14 @@
 <?php
 
-namespace App;
+namespace App\OmrModels;
 
-use App\Employee;
+use App\OmrModels\Employee;
 use Carbon\Carbon;
-use App\Campus;
-use App\Token;
-use App\Exam;
-use App\Modesyear;
-use App\Mode;
+use App\OmrModels\Campus;
+use App\OmrModels\Token;
+use App\OmrModels\Exam;
+use App\OmrModels\Modesyear;
+use App\OmrModels\Mode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use DB;
@@ -42,12 +42,14 @@ class Campus extends Model
 
          if ($request->hasFile('files')) 
           {
+            //Increase the file accept size of the server
             ini_set('memory_limit','256M');
             $file = $files;
             $size = $files->getClientSize();
             $check=$file->getClientOriginalExtension();
             if($check=='dat' || $check=='iit')
             {
+            //create two file for temp and permanent 
             $input=$CAMPUS_NAME[0]['CAMPUS_NAME'].'_'.$Exam_Id.'.'.$file->getClientOriginalExtension();
             $input1='temp_'.$CAMPUS_NAME[0]['CAMPUS_ID'].'.'.$file->getClientOriginalExtension();
             $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$Exam_Id;

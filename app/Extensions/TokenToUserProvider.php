@@ -26,12 +26,17 @@ class TokenToUserProvider implements UserProvider
 	}
 
 	public function retrieveByToken ($identifier, $token) {
+		if(!$token){
+			return null;
+		}
 		$uc=$this->token->where($identifier, $token)->where('created_at', '<', Carbon::now()->subDay())->delete();
   
 		$token =Token::where('access_token',$token)->first();
+
 		if(!count($token)){
 			return null;
 		}
+
 		if(!Employee::whereRaw('id ="'.$token->user_id.'"')->first()){
 			if(!Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->first()){
 			// return Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->get();

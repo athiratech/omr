@@ -1,10 +1,12 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\OmrControllers;
 
-use App\Result;
-use App\Exam;
+use App\OmrModels\Result;
+use App\OmrModels\Exam;
+use  File;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 
 class ResultController extends Controller
 {
