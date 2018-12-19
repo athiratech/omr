@@ -1,12 +1,13 @@
 <?php
 
 namespace App\Http\Resources;
-use App\Mode;
-use App\Type;
-use App\Modesyear;
+use App\OmrModels\Mode;
+use App\OmrModels\Type;
+use App\OmrModels\Modesyear;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-    include('status.php');
+    // include('status.php');
+    // include_once($_SERVER['DOCUMENT_ROOT'].'/sri_chaitanya/College/3_view_created_exam/status.php');
 class Exam extends JsonResource
 {
     /**

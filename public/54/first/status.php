@@ -1,7 +1,6 @@
 <?php
 
 
-
 // .dat, .iit upload..... exam status for .dat/.iit uploads
 
 //Parameters Required:  CollegeID and ExamID
@@ -20,7 +19,7 @@ Available Status:
 
 $con = new mysqli('localhost', 'root', 'Sciladmin@123', 'esaplive');
 
- $status=get_status($con,1,120);   //Parameters = $con,$exam_id,$this_campus_id
+echo $status=get_status($con,1,120);   //Parameters = $con,$exam_id,$this_campus_id
 
 function get_status($con,$exam_id,$this_campus_id)
 {
@@ -80,15 +79,14 @@ function get_status($con,$exam_id,$this_campus_id)
    	else
    		if($is_uploaded=="1")
    		{
-   			//echo "5-uploaded"; 
-        $status="5-uploaded";
+   			echo "5-uploaded"; 
    		}
    }
 
 
  
-										if($status_serialized_array !="")
-										{ $status_non_serialized_array=unserialize($status_serialized_array);
+										 if($status_serialized_array !="")
+										 { $status_non_serialized_array=unserialize($status_serialized_array);
 									       if(isset($status_non_serialized_array[$this_campus_id]))
 										   {
 											   $success_or_danger="success";  //uploaded
@@ -97,21 +95,21 @@ function get_status($con,$exam_id,$this_campus_id)
 											     $success_or_danger="danger"; //upload
 										       }
 											 
-										}
-										else
-										{
-											$success_or_danger="danger"; //upload
-										}
+										 }
+										 else
+										 {
+											 $success_or_danger="danger"; //upload
+										 }
 
 
 
-										if($recompute_status=="should_upload_again")
+										 if($recompute_status=="should_upload_again")
                                             {
                                                   $status="7-Reupload";
                                             }
                                          else
                                             {
-											if($success_or_danger=="success"){$status="5-uploaded";}
+											 if($success_or_danger=="success"){$status="5-uploaded";}
                                              if($success_or_danger=="danger"){$status="3-upload";}
 
 
@@ -160,4 +158,4 @@ function get_status($con,$exam_id,$this_campus_id)
  }
 
 
-
+?>

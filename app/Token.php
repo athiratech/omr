@@ -3,13 +3,13 @@
 namespace App;
 use App\Employee;
 use App\BaseModels\Student;
-use App\Tparent;
+use App\OmrModels\Tparent;
 use Carbon\Carbon;
-use App\Campus;
-use App\Token;
-use App\Exam;
-use App\Modesyear;
-use App\Mode;
+use App\OmrModels\Campus;
+// use App\OmrModels\Token;
+use App\OmrModels\Exam;
+use App\OmrModels\Modesyear;
+use App\OmrModels\Mode;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use DB;
@@ -36,6 +36,7 @@ class Token extends Model
 
 		$msg="This is old token";
 		if(Auth::id()){
+			//Fetch role of the logged user
 			  $role=DB::table('roles')
                   ->join('user_roles','roles.roll_id','=','user_roles.ROLL_ID')
                   ->join('employees','employees.payroll_id','=','user_roles.payroll_id')
@@ -46,6 +47,7 @@ class Token extends Model
 				$rolearray[]=$role[$i]->role;
 			}
 			$token=Token::whereUser_id(Auth::id())->get();
+			//List the Exam list based on EXAM_ADMIN
 			if($role[0]->role!='EXAM_ADMIN'){
 			  $exam= new ExamCollection(Exam::select('*')
                               ->whereIn('state_id',function($query){

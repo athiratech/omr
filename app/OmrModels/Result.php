@@ -1,6 +1,6 @@
 <?php
 
-namespace App;
+namespace App\OmrModels;
 
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -8,15 +8,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Auth;
 use App\Http\Requests\LoginValidation;
 use Carbon\Carbon;
-use App\Employee;
-use App\Parent_details;
+use App\OmrModels\Employee;
+use App\OmrModels\Parent_details;
 use App\BaseModels\Student;
 use App\BaseModels\Campus;
-use App\Tparent;
+use App\OmrModels\Tparent;
 use App\Token;
-use App\User;
+use App\OmrModels\User;
 use Illuminate\Http\Request;
-use App\Exam;
+use App\OmrModels\Exam;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Resources\EmployeeCollection;
 use App\Http\Resources\ExamCollection;
@@ -29,6 +29,7 @@ class Result extends Authenticatable
 	 use Notifiable;
    public static function login($data){
    	     $msg="This is old token";
+         //Login with three driver for different login
         if($data->user_type=="employee")
         {
         Auth::attempt([ 'PAYROLL_ID' => $data->get('USERNAME'), 'password' => $data->get('PASSWORD') ]);
@@ -63,7 +64,6 @@ class Result extends Authenticatable
                   ->select('roles.role')
                   ->get();
                      
-            // Here Im getting the user data
             foreach ($role as $key => $value) {
                $c[]=$value->role;
             }

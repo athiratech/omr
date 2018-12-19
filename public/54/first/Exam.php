@@ -5,7 +5,7 @@ use Auth;
 use DB;
 use App\Campus;
 use Illuminate\Database\Eloquent\Model;
-include_once('z_ias_format.php');
+include_once($_SERVER['DOCUMENT_ROOT'].'/sri_chaitanya/Exam_Admin/3_view_created_exam/z_ias_format.php');
 class Exam extends Model
 {
   protected $table='1_exam_admin_create_exam';
@@ -48,12 +48,12 @@ class Exam extends Model
   					->get();
   		foreach ($marklist[$key] as $key1 => $value1) {
   			$value1->{'max_marks'}=array_sum(explode(',',$value->max_marks));
-  			$value1->{'rank_generated_type'}=explode(',',$value->rank_generated_type);
-  			$value1->{'omr_scanning_type'}=$value->omr_scanning_type;
-  			if($value->omr_scanning_type=="non_advanced")
-  			$value1->{'subject_string_final'}=explode(',',$value->subject_string_final);
-  			else
-  			$value1->{'subject_string_final'}=array_splice(ias_model_year_paper($value->model_year,$value->paper)[0],1,50);
+  			// $value1->{'rank_generated_type'}=explode(',',$value->rank_generated_type);
+  			// $value1->{'omr_scanning_type'}=$value->omr_scanning_type;
+  			// if($value->omr_scanning_type=="non_advanced")
+  			// $value1->{'subject_string_final'}=explode(',',$value->subject_string_final);
+  			// else
+  			// $value1->{'subject_string_final'}=array_splice(ias_model_year_paper($value->model_year,$value->paper)[0],1,50);
 
 
   			$value1->{'mode_name'}=$subject_marks[0]->test_mode_name;
