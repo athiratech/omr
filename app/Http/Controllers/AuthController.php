@@ -187,7 +187,7 @@ DB::raw('CASE WHEN template_data != "" THEN "true" ELSE "false" END AS template_
 		   	 }
 		   	 try{
 			   	 		$mode=Modesyear::where('model_years',trim($request->model_years, '"'))
-			          		->update(['template_data' =>  $request->template_data,'template_path' => "https://athiratechnologies.com/omr/public/images/".$input]);
+			          		->update(['template_data' =>  $request->template_data,'template_path' => "https://103.206.115.37/omr/public/images/".$input]);
 				        $modedata=Modesyear::where('model_years',trim($request->model_years, '"'))
 				          ->select('template_data')->get();
 
@@ -230,7 +230,7 @@ DB::raw('CASE WHEN template_data != "" THEN "true" ELSE "false" END AS template_
 			    }
 			
 			$mode=Mode::where('test_mode_id',trim($request->test_mode_id, '"'))
-          ->update(['template_data' =>  $request->template_data,'template_path' =>"https://athiratechnologies.com/omr/public/images/".$input]);
+          ->update(['template_data' =>  $request->template_data,'template_path' =>"https://103.206.115.37/omr/public/images/".$input]);
 
           $modedata=Mode::where('test_mode_id',trim($request->test_mode_id, '"'))->select('template_data')
           ->get();

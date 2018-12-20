@@ -39,29 +39,20 @@ class TokenToUserProvider implements UserProvider
 
 		if(!Employee::whereRaw('id ="'.$token->user_id.'"')->first()){
 			if(!Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->first()){
-			// return Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->get();
-				// return $token->parent;
 			return Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->first();
 
 			
 		}
 			return Student::whereRaw('ADM_NO ="'.$token->user_id.'"')->first();
-		
-			// return $token->student;
-
 		}
 
-		// return Employee::whereRaw('PAYROLL_ID ="'.$token->user_id.'"')->first();
 		return $token->user;
 	}
 
 	public function updateRememberToken (Authenticatable $user, $token) {
-		// update via remember token not necessary
 	}
 
 	public function retrieveByCredentials (array $credentials) {
-		// implementation upto user.
-		// how he wants to implement -
 		// let's try to assume that the credentials ['username', 'password'] given
 		$user = $this->user;
 		foreach ($credentials as $credentialKey => $credentialValue) {
