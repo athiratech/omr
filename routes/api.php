@@ -15,7 +15,9 @@ use Illuminate\Http\Request;
 
 use App\OmrModels\Employee;
 use App\Http\Resources\Employee as UserResource;
-
+Route::get('testapi',function(){
+	return DB::table('t_student')->limit(20)->get();
+});
 	Route::post('userLogin', 'AuthController@tokenAuthAttempt');
 	Route::post('resultLogin', 'OmrControllers\ResultController@login');
 	Route::post('uploadResults','AuthController@upload');

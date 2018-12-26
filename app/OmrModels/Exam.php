@@ -64,8 +64,13 @@ class Exam extends Model
         }       
       }     
     }
+    foreach($mode as $key=>$value){
+        $res_key[] = $key;
+        $res_val[] = $value;
+        }
     return [
-        "Mode"=>$mode,
+        "Mode"=>["Mode_name"=>$res_key,
+                  "Percentage"=>$res_val],
         "Marklist"=>$marklist,
         ];
     
