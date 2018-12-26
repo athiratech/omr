@@ -70,11 +70,6 @@ class AccessTokenGuard implements Guard
 	 * @return bool
 	 */
 	public function validate (array $credentials = []) {
-			// $client = Token::where('access_token',$this->inputKey);
-   //      $uc=Token::where([['access_token',$this->inputKey],['created_at', '<', Carbon::now()->subDay()]])->delete();
-   // if($uc){
-   // 	return false;
-   // }
 		if (empty($credentials[$this->inputKey])) {
 			return false;
 		}
