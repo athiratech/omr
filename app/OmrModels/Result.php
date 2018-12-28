@@ -26,9 +26,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Result extends Authenticatable
 {
-	 use Notifiable;
+   use Notifiable;
    public static function login($data){
-   	     $msg="This is old token";
+         $msg="This is old token";
          //Login with three driver for different login
         if($data->user_type=="employee")
         {

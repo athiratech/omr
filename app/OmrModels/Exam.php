@@ -1,6 +1,7 @@
 <?php
 
 namespace App\OmrModels;
+use App\BaseModels\Campus;
 use Auth;
 use DB;
 use Illuminate\Database\Eloquent\Model;

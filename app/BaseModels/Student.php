@@ -5,6 +5,7 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Support\Facades\DB;
 use App\Token;
+use App\OmrModels\role;
 use App\Ipmpc;
 use Auth;
 
@@ -16,6 +17,11 @@ class Student extends Authenticatable
     protected $table = 't_student';
     protected $primaryKey = 'ADM_NO';
     private static $test_types=[];
+     public function roles()
+    {
+        return $this->belongsToMany('App\OmrModels\role');
+    }
+
 
      public function program()
     {

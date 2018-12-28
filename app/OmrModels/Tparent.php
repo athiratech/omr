@@ -14,7 +14,7 @@ class Tparent extends Authenticatable
     public $timestamps=false;
      public function roles()
     {
-        return $this->belongsToMany('App\role');
+        return $this->belongsToMany('App\OmrModels\role');
     }
 
    public function tokens() {

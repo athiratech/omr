@@ -2,7 +2,7 @@
 namespace App\Http\Controllers;
 use Carbon\Carbon;
 use App\Employee;
-use \App\OmrModels\Campus;
+use \App\BaseModels\Campus;
 use \App\OmrModels\Version;
 use App\Token;
 use \App\OmrModels\Exam;
