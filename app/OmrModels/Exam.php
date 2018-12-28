@@ -1,6 +1,7 @@
 <?php
 
 namespace App\OmrModels;
+use App\BaseModels\Campus;
 use Auth;
 use DB;
 use Illuminate\Database\Eloquent\Model;
@@ -35,34 +36,27 @@ class Exam extends Model
 
     foreach ($exam as $key => $value) 
     {
-      //Fetch o_test_modes details for table name
+      //Fetch 0_test_modes details for table name
       $subject_marks=Mode::whereRaw('test_mode_id ='.$value->mode)
                   ->get();
       //Fetch record from that table name
-      $marklist[$key]=DB::table($subject_marks[0]->marks_upload_final_table_name)
+      $exam_data=DB::table($subject_marks[0]->marks_upload_final_table_name)
             ->whereRaw('STUD_ID ="'.Auth::id().'"')
             ->whereRaw('test_code_sl_id ="'.$value->sl.'"')
             ->select('test_code_sl_id','STUD_ID','TOTAL','STREAM_RANK','PROGRAM_RANK','SEC_RANK','CAMP_RANK','CITY_RANK','DISTRICT_RANK','STATE_RANK','ALL_INDIA_RANK')
             ->get();
       //Add max marks and test_mode_name for calculation
-      foreach ($marklist[$key] as $key1 => $value1) {
-        $value1->{'max_marks'}=array_sum(explode(',',$value->max_marks));
-        $value1->{'mode_name'}=$subject_marks[0]->test_mode_name;
-      }
-    }
-    //Loop for overall marklist
-    for ($i=0; $i <count($marklist) ; $i++) { 
-      if(isset($marklist[$i][0])){
-      $calculation=static::overallmarklist1($marklist[$i]);
-      //Check the student elligible to write the exam or not   
-        if(array_key_exists($marklist[$i][0]->mode_name, $mode)){
-          $sum=$mode[$marklist[$i][0]->mode_name]+$calculation;
-          $mode[$marklist[$i][0]->mode_name]=$sum/2;
+        if(isset($exam_data[0])){
+          $marklist[]=$exam_data;
+      $calculation=static::overallmarklist1(array_sum(explode(',',$value->max_marks)),$exam_data[0]->TOTAL); 
+        if(array_key_exists($subject_marks[0]->test_mode_name, $mode)){
+          $sum=$mode[$subject_marks[0]->test_mode_name]+$calculation;
+          $mode[$subject_marks[0]->test_mode_name]=$sum/2;
         }
         else{
-        $mode[$marklist[$i][0]->mode_name]=$calculation;  
+        $mode[$subject_marks[0]->test_mode_name]=$calculation;  
         }       
-      }     
+      } 
     }
     foreach($mode as $key=>$value){
         $res_key[] = $key;
@@ -96,11 +90,11 @@ class Exam extends Model
     }
   }
   //Caluculate overall mark with sum ofmax_mark 
-  public static function overallmarklist1($data){
+  public static function overallmarklist1($max_marks,$total){
 
-    foreach ($data as $key => $value) {
-      return ($value->TOTAL/$value->max_marks)*100;
-    }
+    // foreach ($data as $key => $value) {
+      return ($total/$max_marks)*100;
+    // }
 
   }
   public static function type($data){

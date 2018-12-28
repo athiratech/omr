@@ -26,9 +26,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Result extends Authenticatable
 {
-	 use Notifiable;
+   use Notifiable;
    public static function login($data){
-   	     $msg="This is old token";
+         $msg="This is old token";
          //Login with three driver for different login
         if($data->user_type=="employee")
         {
@@ -133,7 +133,7 @@ class Result extends Authenticatable
             }
            }
            else{
-            $student=Parent_details::where('ADM_NO',Auth::guard('tparent')->id())->limit(1)->get();
+            $student=DB::select('SELECT * FROM `t_parent_details` WHERE ADM_NO="'.Auth::guard('tparent')->id().'" LIMIT 1');
              $details=[
                     'NAME'=>$student[0]->PARENT_NAME,
                     'USER'=>'PARENT',
