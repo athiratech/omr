@@ -46,7 +46,7 @@ class Exam extends Model
             ->get();
       //Add max marks and test_mode_name for calculation
         if(isset($exam_data[0])){
-          $marklist[]=$exam_data;
+          $marklist[]=$exam_data[0];
       $calculation=static::overallmarklist1(array_sum(explode(',',$value->max_marks)),$exam_data[0]->TOTAL); 
         if(array_key_exists($subject_marks[0]->test_mode_name, $mode)){
           $sum=$mode[$subject_marks[0]->test_mode_name]+$calculation;
