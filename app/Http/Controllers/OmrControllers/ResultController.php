@@ -27,4 +27,8 @@ class ResultController extends Controller
         $res=Exam::examlist($request);
         return $res;
     }
+    public function AnswerDetails(Request $request){
+        $res=Exam::AnswerDetails($request);
+        return $res;
+    }
 }

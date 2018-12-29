@@ -109,4 +109,15 @@ class Exam extends Model
     $out=DB::table('0_test_types')->select('test_type_id','test_type_name')->get();
     return $out;
   }
+  public static function AnswerDetails($data){
+   $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string')->get();
+   return $correctans;
+  }
+  public static function AnswerOptained($data){
+   
+  }
+  public static function AnswerTypes($data){
+   
+  }
+
 }
