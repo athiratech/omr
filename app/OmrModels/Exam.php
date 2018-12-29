@@ -47,7 +47,7 @@ class Exam extends Model
             ->get();
       //Add max marks and test_mode_name for calculation
         if(isset($exam_data[0])){
-          $marklist[]=$exam_data[0];
+          $marklist[]=$exam_data;
       $calculation=static::overallmarklist1(array_sum(explode(',',$value->max_marks)),$exam_data[0]->TOTAL); 
         if(array_key_exists($subject_marks[0]->test_mode_name, $mode)){
           $sum=$mode[$subject_marks[0]->test_mode_name]+$calculation;
@@ -108,5 +108,113 @@ class Exam extends Model
   public static function test_type_list($data){
     $out=DB::table('0_test_types')->select('test_type_id','test_type_name')->get();
     return $out;
+  }
+  public static function AnswerDetails($data){
+   $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final')->get();
+
+    // return static::AnswerObtain($data);
+    $marked="";
+
+   if($correctans[0]->omr_scanning_type=='advanced')
+   {
+     $filedata=ias_model_year_paper($correctans[0]->model_year,$correctans[0]->paper);
+
+     return static::AdvanceAnswer($filedata,$correctans,$marked);
+    }
+    else
+    {
+      $subj=array();
+
+      $filedata[6]=$correctans[0]->to_from_range;
+
+      foreach (explode(',',$correctans[0]->subject_string_final) as $key => $value) 
+      {
+        $subj[]=DB::table('0_subjects')->where('subject_id',$value)->pluck('subject_name')[0];
+      }
+      $filedata[0]=$subj;
+
+       return static::NonAdvanceAnswer($filedata,$correctans,$marked);
+    }
+
+  }
+  public static function NonAdvanceAnswer($data,$ans,$marked){
+   $list=array();
+   $correct=explode(',', $ans[0]->CorrectAnswer);
+    $b1=explode(',', $data[6]);
+    $b2=end($b1);
+    $b3=explode('-', $b2);
+
+    $i=1;    $s=0;    $su=0;    $sub=0;    $ans=0;
+
+    $subject_list=explode(',', $data[6]);
+
+    $subject_name=array_filter($data[0]);
+
+    $temp="";
+
+    for ($key=0; $key <= end($b3)-1; $key++) 
+    { 
+      $subjectwise=explode('-',$subject_list[$su]);
+
+        $subject=$subject_name[$sub];
+
+      if($key==end($subjectwise))
+      {
+        $su++;        $sub++;
+      }
+      $list[$i]= new \stdClass();
+      $list[$i]->{'question_no'}=$i;
+      $list[$i]->{'subject_name'}=$subject;
+      $list[$i]->{'correct_answer'}=$correct[$ans];
+      $list[$i]->{'marked_answer'}=$marked;
+      $i++;
+      $ans++;
+    }
+    return $list;
+  }
+  public static function AdvanceAnswer($data,$ans,$marked){
+    $list=array();
+
+    $correct=explode(',', $ans[0]->CorrectAnswer);
+
+    $i=1;    $s=0;    $su=0;    $sub=1;    $ans=0;
+
+    $subject_list=explode(',', $data[6]);
+    $subject_name=array_filter($data[0]);
+    $section_list=array_filter($data[1]);
+    $temp="";
+
+    foreach ($section_list as $key => $value) 
+    {
+      $subjectwise=explode('-',$subject_list[$su]);
+        $subject=$subject_name[$sub];
+      if($key==end($subjectwise))
+      {
+        $su++;        $sub++;
+      }
+      if($temp!=$value)
+      {
+        $temp=$value;
+        $s++;
+      }
+      $list[$i]= new \stdClass();
+      $list[$i]->{'question_no'}=$key;
+      $list[$i]->{'question_type'}=$value;
+      $list[$i]->{'section'}='Section'.$s;
+      $list[$i]->{'subject_name'}=$subject;
+      $list[$i]->{'correct_answer'}=$correct[$ans];
+       $list[$i]->{'marked_answer'}=$marked;
+      $i++;
+      $ans++;
+      }
+      return $list;
+  }
+  public static function AnswerObtain($data)
+  {
+    return [
+          "ADM_NO"=>Auth::user()->ADM_NO,
+          "CAMPUS_ID"=>Auth::user()->CAMPUS_ID,
+          "Exam_Id"=>$data->exam_id
+            ];
   }
 }
