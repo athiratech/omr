@@ -24,6 +24,7 @@ Route::get('testapi',function(){
 	Route::group([ 'middleware' => 'auth:token' ], function () {		
 		Route::post('total_percentage','OmrControllers\ResultController@total_percentage');
 		Route::post('answer_details','OmrControllers\ResultController@AnswerDetails');
+		Route::post('exam_info','OmrControllers\ResultController@exam_info');
 		Route::post('examlist','OmrControllers\ResultController@examlist');
 		Route::post('test_type_list','OmrControllers\ResultController@test_type_list');
 		Route::get('groups','OmrControllers\BaseController@groups');

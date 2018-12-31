@@ -112,7 +112,7 @@ class Exam extends Model
   public static function AnswerDetails($data){
    $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final')->get();
 
-    // return static::AnswerObtain($data);
+    return static::AnswerObtain($data,$correctans);
     $marked="";
 
    if($correctans[0]->omr_scanning_type=='advanced')
@@ -209,12 +209,38 @@ class Exam extends Model
       }
       return $list;
   }
-  public static function AnswerObtain($data)
+  public static function AnswerObtain($data,$ans)
   {
+    $alphabet = array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ); 
+     $pqrst = array('p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'); 
+    if($ans[0]->omr_scanning_type=="advanced")
+    {
+    $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.Auth::user()->CAMPUS_ID.'/final/'.Auth::user()->ADM_NO.'.iit';
+    $astring="x,8464277-A,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4";
+    }
+    else
+    {
+    $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.Auth::user()->CAMPUS_ID.'/final/'.Auth::user()->ADM_NO.'.dat';
+    $nstring="x,8464277-A,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4";
+    }
+  $answer=explode(',', $astring);
+  // $answer2=array_splice($answer, 2);
+  $answer1=array_slice($answer, 2);
+  for($i=0;$i<=count($answer1);$i++) 
+  {
+    $data=$answer1[$i];
+    if($i<'26')
+    $ob[]=$alphabet[$data];
+  }
+    
     return [
-          "ADM_NO"=>Auth::user()->ADM_NO,
-          "CAMPUS_ID"=>Auth::user()->CAMPUS_ID,
-          "Exam_Id"=>$data->exam_id
+          "ansdata"=>$ob,
+          // "ans"=>explode(',',$ans[0]->CorrectAnswer),
+          // "ADM_NO"=>Auth::user()->ADM_NO,
+          // "CAMPUS_ID"=>Auth::user()->CAMPUS_ID,
+          // "Exam_Id"=>$data->exam_id,
+          // "Answer_path"=>$path,
+          // "Answer"=>$answer1
             ];
   }
 }
