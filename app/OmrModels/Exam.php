@@ -112,7 +112,7 @@ class Exam extends Model
   public static function AnswerDetails($data){
    $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final')->get();
 
-    // return static::AnswerObtain($data);
+    return static::AnswerObtain($data);
     $marked="";
 
    if($correctans[0]->omr_scanning_type=='advanced')
@@ -211,6 +211,10 @@ class Exam extends Model
   }
   public static function AnswerObtain($data)
   {
+    $path=public_path();
+
+    return $path;
+    
     return [
           "ADM_NO"=>Auth::user()->ADM_NO,
           "CAMPUS_ID"=>Auth::user()->CAMPUS_ID,
