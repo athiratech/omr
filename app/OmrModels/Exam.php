@@ -254,7 +254,6 @@ class Exam extends Model
     $ob[]=$answer1[$i];
     $a++;
   }
-    
     return [
           "ansdata"=>$ob,
           // "ans"=>explode(',',$ans[0]->CorrectAnswer),

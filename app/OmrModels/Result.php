@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Auth;
 use App\Http\Requests\LoginValidation;
 use Carbon\Carbon;
-use App\OmrModels\Employee;
+use App\Employee;
 use App\OmrModels\Parent_details;
 use App\BaseModels\Student;
 use App\BaseModels\Campus;
@@ -69,6 +69,7 @@ class Result extends Authenticatable
             }
             
             $token=Token::whereUser_id(Auth::id())->pluck('access_token');
+            $subject=DB::table('IP_Exam_Section as a')->join('0_subjects as b','a.SUBJECT_ID','b.SUBJECT_ID')->where('a.EMPLOYEE_ID',Auth::user()->payroll_id)->select('b.subject_id','b.subject_name','a.SECTION_ID')->get();
            if($uc){
              $msg='Token expired and New Token generated';
            }
@@ -87,6 +88,7 @@ class Result extends Authenticatable
                             'Role'=>$c,
                             ],
                             'Details'=>$details,
+                            'Subject'=>$subject,
                     ];
          
             }
@@ -162,7 +164,7 @@ class Result extends Authenticatable
          
             }
            }
-                     
+            $subject=DB::table('IP_Exam_Section as a')->join('0_subjects as b','a.SUBJECT_ID','b.SUBJECT_ID')->where('a.EMPLOYEE_ID',Auth::user()->payroll_id)->select('b.subject_id','b.subject_name','a.SECTION_ID')->get();  
            if(Auth::id())
                     return [
                         'Login' => [
@@ -172,6 +174,7 @@ class Result extends Authenticatable
                         'Role'=>$c,
                             ],
                         'Details'=>$details,
+                        'Subject'=>$subject,
                     ];
                     else
                          return [
