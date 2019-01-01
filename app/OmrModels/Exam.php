@@ -110,19 +110,23 @@ class Exam extends Model
     return $out;
   }
   public static function AnswerDetails($data){
-   $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final')->get();
-
-    return static::AnswerObtain($data,$correctans);
-    $marked="";
+    $type="";
+   $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl')->get();
 
    if($correctans[0]->omr_scanning_type=='advanced')
    {
      $filedata=ias_model_year_paper($correctans[0]->model_year,$correctans[0]->paper);
+     // $marked=static::AnswerObtain($data,$correctans,array_filter($filedata[1]));
+     return static::AnswerObtain($data,$correctans,array_filter($filedata[1]));
 
      return static::AdvanceAnswer($filedata,$correctans,$marked);
+     // return $filedata;
     }
     else
     {
+     // $marked=static::AnswerObtain($data,$correctans,$type);
+     return static::AnswerObtain($data,$correctans,$type);
+
       $subj=array();
 
       $filedata[6]=$correctans[0]->to_from_range;
@@ -166,7 +170,7 @@ class Exam extends Model
       $list[$i]->{'question_no'}=$i;
       $list[$i]->{'subject_name'}=$subject;
       $list[$i]->{'correct_answer'}=$correct[$ans];
-      $list[$i]->{'marked_answer'}=$marked;
+      $list[$i]->{'marked_answer'}=$marked['ansdata'][$ans];
       $i++;
       $ans++;
     }
@@ -203,34 +207,52 @@ class Exam extends Model
       $list[$i]->{'section'}='Section'.$s;
       $list[$i]->{'subject_name'}=$subject;
       $list[$i]->{'correct_answer'}=$correct[$ans];
-       $list[$i]->{'marked_answer'}=$marked;
+       $list[$i]->{'marked_answer'}=$marked['ansdata'][$ans];
       $i++;
       $ans++;
       }
       return $list;
   }
-  public static function AnswerObtain($data,$ans)
+  public static function AnswerObtain($data,$ans,$type)
   {
-    $alphabet = array( 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' ); 
-     $pqrst = array('p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z'); 
+     $abcd = array('A'=>1, 'B'=>2,'C'=>3 ,'D'=>4 ,'E'=>5 ,'F'=>6 ,'G'=>7 ,'H'=>8 ,'I'=>9  );
+     $pqrst = array('P'=>1, 'Q'=>2, 'R'=>3, 'S'=>4, 'T'=>5, 'U'=>6, 'V'=>7, 'W'=>8, 'X'=>9); 
     if($ans[0]->omr_scanning_type=="advanced")
     {
-    $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.Auth::user()->CAMPUS_ID.'/final/'.Auth::user()->ADM_NO.'.iit';
-    $astring="x,8464277-A,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4";
+    $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$ans[0]->sl.'/final/'.Auth::user()->CAMPUS_ID.'.iit';
+    // $astring="x,8464277-A,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4";
+    $astring=static::advanced($path);
+    return $astring;
     }
     else
     {
-    $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.Auth::user()->CAMPUS_ID.'/final/'.Auth::user()->ADM_NO.'.dat';
-    $nstring="x,8464277-A,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4";
+    $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$ans[0]->sl.'/final/'.Auth::user()->CAMPUS_ID.'.dat';
+    // $astring="x,8464277-A,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4";
+    $astring=static::nonadvanced($path);
+    return $astring;
+
     }
   $answer=explode(',', $astring);
   // $answer2=array_splice($answer, 2);
+  $a=1;
   $answer1=array_slice($answer, 2);
-  for($i=0;$i<=count($answer1);$i++) 
+  for($i=0;$i<=count($answer1)-1;$i++) 
   {
-    $data=$answer1[$i];
-    if($i<'26')
-    $ob[]=$alphabet[$data];
+    // $answer1[$i]=1234; //your value
+     $temp='';
+     $arr_num=str_split ($answer1[$i]);
+    foreach($arr_num as $data)
+    {
+        if($type[$a]=="mb")
+      $temp.=array_search($data,$pqrst);
+        elseif($type[$a]=="i")
+      $temp.=$data;    
+        else
+      $temp.=array_search($data,$abcd);
+    }
+    $answer1[$i]=$temp;
+    $ob[]=$answer1[$i];
+    $a++;
   }
     
     return [
@@ -243,4 +265,113 @@ class Exam extends Model
           // "Answer"=>$answer1
             ];
   }
+
+
+// ADVANCED
+public static function advanced($filename){
+// $filename="../uploads/32/temp_120.iit"; 
+$lines = file($filename);
+
+$count=0;
+
+$line_count=0;
+
+
+foreach ($lines as $line_num => $line)
+  { 
+    $line=trim($line);    
+
+
+      $current_single_iit_line=$line;
+      //correct ias=key file ... stored from ui.. first index leave blank
+      
+      $current_single_iit_line_array=explode(",",$current_single_iit_line);
+    
+      $current_usn_with_flag_if_exist=$current_single_iit_line_array[1];
+      $current_usn_with_flag_if_exist_array=explode("-",$current_usn_with_flag_if_exist);
+
+      $current_usn=$current_usn_with_flag_if_exist_array[0];
+
+
+
+         if(isset($current_usn_with_flag_if_exist_array[1]))
+          {
+              $current_usn_flag=$current_usn_with_flag_if_exist_array[1];   // FLAG   =>  D,   A  or blank
+          }
+          else
+          {
+              $current_usn_flag="blank";  
+          }
+if(Auth::id()==$current_usn && $current_usn_flag!="D")
+  return [
+    "Flag"=>$current_usn_flag,
+    "USN"=>$current_usn,
+    "Line"=>$line,
+          ];
+
+      
+  }
+}
+
+
+  //NON ADVANCED--------------------------
+public static function nonadvanced($filename){
+
+  // $filename="../uploads/27/temp_804.dat"; 
+  $lines = file($filename);
+
+$line_count=0;
+
+
+$count=sizeof($lines); 
+
+$it=$count/4;
+
+$count=1;
+
+for($in=0;$in<$it;$in=$in+4)
+{
+   $usnline=$lines[$in];
+   $seriesline=$lines[$in+1];
+   $qnoline=$lines[$in+2];
+   $ansline=$lines[$in+3];
+
+ //DELETE
+   $usnlinearray=explode("=",$usnline);   //.  No.=9277048-D
+
+   //echo json_encode($usnlinearray);
+   $current_usn_with_if_flag=$usnlinearray[1]; // 9277048-D
+   $usn_with_flag_array=explode("-",$current_usn_with_if_flag);
+
+
+   $current_usn=$usn_with_flag_array[0];
+
+
+
+         if(isset($usn_with_flag_array[1]))
+          {
+              $current_usn_flag=$usn_with_flag_array[1];   // FLAG   =>  D,   A  or blank
+          }
+          else
+          {
+              $current_usn_flag="blank";  
+          }
+
+
+
+   $current_usn_flag=trim($current_usn_flag);
+   //echo "curf=".$current_usn_flag;echo "<br>";//exit;
+   $only_usn=$usn_with_flag_array[0];
+   $current_usn=$only_usn;
+
+if(Auth::id()==$current_usn && $current_usn_flag!="D")
+    return [
+    "Flag"=>$current_usn_flag,
+    "USN"=>$current_usn,
+    "Line"=>$ansline,
+          ];
+
+   }
+  }
+
 }
