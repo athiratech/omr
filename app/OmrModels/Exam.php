@@ -92,9 +92,7 @@ class Exam extends Model
   //Caluculate overall mark with sum ofmax_mark 
   public static function overallmarklist1($max_marks,$total){
 
-    // foreach ($data as $key => $value) {
       return ($total/$max_marks)*100;
-    // }
 
   }
   public static function type($data){
@@ -115,17 +113,15 @@ class Exam extends Model
 
    if($correctans[0]->omr_scanning_type=='advanced')
    {
+
      $filedata=ias_model_year_paper($correctans[0]->model_year,$correctans[0]->paper);
-     // $marked=static::AnswerObtain($data,$correctans,array_filter($filedata[1]));
-     return static::AnswerObtain($data,$correctans,array_filter($filedata[1]));
+     $marked=static::AnswerObtain($data,$correctans,array_filter($filedata[1]));
 
      return static::AdvanceAnswer($filedata,$correctans,$marked);
-     // return $filedata;
     }
     else
     {
-     // $marked=static::AnswerObtain($data,$correctans,$type);
-     return static::AnswerObtain($data,$correctans,$type);
+     $marked=static::AnswerObtain($data,$correctans,$type);
 
       $subj=array();
 
@@ -155,8 +151,7 @@ class Exam extends Model
     $subject_name=array_filter($data[0]);
 
     $temp="";
-
-    for ($key=0; $key <= end($b3)-1; $key++) 
+    for ($key=0; $key<=end($b3)-1; $key++) 
     { 
       $subjectwise=explode('-',$subject_list[$su]);
 
@@ -215,40 +210,49 @@ class Exam extends Model
   }
   public static function AnswerObtain($data,$ans,$type)
   {
-     $abcd = array('A'=>1, 'B'=>2,'C'=>3 ,'D'=>4 ,'E'=>5 ,'F'=>6 ,'G'=>7 ,'H'=>8 ,'I'=>9  );
-     $pqrst = array('P'=>1, 'Q'=>2, 'R'=>3, 'S'=>4, 'T'=>5, 'U'=>6, 'V'=>7, 'W'=>8, 'X'=>9); 
+      $ad=0;
+      $ob=array();
+     $abcd = array('A'=>1, 'B'=>2,'C'=>3 ,'D'=>4 ,'E'=>5 ,'F'=>6 ,'G'=>7 ,'H'=>8 ,'I'=>9,'U'=>0 );
+     $nonadv=array('A'=>1,'B'=>2,'C'=>4,'D'=>8,'U'=>0);
+     $integer=array('U'=>-1,'M'=>-2,'1'=>1,'2'=>2,'3'=>3,'4'=>4,'5'=>5,'6'=>6,'7'=>7,'8'=>8,'9'=>9,'0'=>0);
+     $pqrst = array('P'=>1, 'Q'=>2, 'R'=>3, 'S'=>4, 'T'=>5, 'U'=>6, 'V'=>7, 'W'=>8, 'X'=>9,'U'=>0); 
     if($ans[0]->omr_scanning_type=="advanced")
     {
     $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$ans[0]->sl.'/final/'.Auth::user()->CAMPUS_ID.'.iit';
-    // $astring="x,8464277-A,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4";
     $astring=static::advanced($path);
-    return $astring;
+     $answer=explode(',', $astring['Line']);
+      $a=1;
+      $answer1=array_slice($answer, 2);
+
     }
     else
     {
     $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$ans[0]->sl.'/final/'.Auth::user()->CAMPUS_ID.'.dat';
-    // $astring="x,8464277-A,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4,3,2,4,0,1,2,3,3,4,3,4,0,3,4,1,2,4,235,1235,245,145,0,0,0,0,1,4,4,3,0,1,0,2,1,2,4,3,1,0,2,1,3,2,4,1,3,4,1,2,5,0,0,3,4";
     $astring=static::nonadvanced($path);
-    return $astring;
-
+     $answer1=explode('   ', $astring['Line']);
+      $a=1;
+      $ad=1;
     }
-  $answer=explode(',', $astring);
-  // $answer2=array_splice($answer, 2);
-  $a=1;
-  $answer1=array_slice($answer, 2);
-  for($i=0;$i<=count($answer1)-1;$i++) 
+ 
+  for($i=0;$i<=count($answer1)-2;$i++) 
   {
-    // $answer1[$i]=1234; //your value
      $temp='';
      $arr_num=str_split ($answer1[$i]);
     foreach($arr_num as $data)
     {
-        if($type[$a]=="mb")
+      if($ad==1)
+      {
+      $temp.=array_search($data,$nonadv);
+      }
+      else
+      {
+        if($type[$a]=="mb")      
       $temp.=array_search($data,$pqrst);
         elseif($type[$a]=="i")
-      $temp.=$data;    
+      $temp.=array_search($data,$integer);    
         else
       $temp.=array_search($data,$abcd);
+      }
     }
     $answer1[$i]=$temp;
     $ob[]=$answer1[$i];
@@ -256,19 +260,13 @@ class Exam extends Model
   }
     return [
           "ansdata"=>$ob,
-          // "ans"=>explode(',',$ans[0]->CorrectAnswer),
-          // "ADM_NO"=>Auth::user()->ADM_NO,
-          // "CAMPUS_ID"=>Auth::user()->CAMPUS_ID,
-          // "Exam_Id"=>$data->exam_id,
-          // "Answer_path"=>$path,
-          // "Answer"=>$answer1
             ];
   }
 
 
 // ADVANCED
 public static function advanced($filename){
-// $filename="../uploads/32/temp_120.iit"; 
+
 $lines = file($filename);
 
 $count=0;
@@ -301,12 +299,15 @@ foreach ($lines as $line_num => $line)
           {
               $current_usn_flag="blank";  
           }
-if(Auth::id()==$current_usn && $current_usn_flag!="D")
-  return [
-    "Flag"=>$current_usn_flag,
-    "USN"=>$current_usn,
-    "Line"=>$line,
-          ];
+  if(substr(Auth::id(),2)==$current_usn){
+    if($current_usn_flag!="D" || $current_usn_flag==""){
+    return [
+      "Flag"=>$current_usn_flag,
+      "USN"=>$current_usn,
+      "Line"=>$line,
+            ];
+          }
+        }
 
       
   }
@@ -316,7 +317,6 @@ if(Auth::id()==$current_usn && $current_usn_flag!="D")
   //NON ADVANCED--------------------------
 public static function nonadvanced($filename){
 
-  // $filename="../uploads/27/temp_804.dat"; 
   $lines = file($filename);
 
 $line_count=0;
@@ -363,12 +363,15 @@ for($in=0;$in<$it;$in=$in+4)
    $only_usn=$usn_with_flag_array[0];
    $current_usn=$only_usn;
 
-if(Auth::id()==$current_usn && $current_usn_flag!="D")
+  if(substr(Auth::id(),2)==$current_usn){
+    if($current_usn_flag!="D" || $current_usn_flag==""){
     return [
     "Flag"=>$current_usn_flag,
     "USN"=>$current_usn,
     "Line"=>$ansline,
           ];
+        }
+      }
 
    }
   }

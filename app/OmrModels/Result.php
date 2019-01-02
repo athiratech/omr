@@ -164,8 +164,8 @@ class Result extends Authenticatable
          
             }
            }
+           if(Auth::id()){
             $subject=DB::table('IP_Exam_Section as a')->join('0_subjects as b','a.SUBJECT_ID','b.SUBJECT_ID')->where('a.EMPLOYEE_ID',Auth::user()->payroll_id)->select('b.subject_id','b.subject_name','a.SECTION_ID')->get();  
-           if(Auth::id())
                     return [
                         'Login' => [
                             'response_message'=>"success",
@@ -176,7 +176,8 @@ class Result extends Authenticatable
                         'Details'=>$details,
                         'Subject'=>$subject,
                     ];
-                    else
+                  }
+                    else{
                          return [
                         'Login' => [
                             'response_message'=>"success",
@@ -185,6 +186,7 @@ class Result extends Authenticatable
                             ],
                         'Details'=>$details, 
                     ];
+                  }
         }
         else{
                 return [
