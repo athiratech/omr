@@ -32,7 +32,7 @@ class TokenToUserProvider implements UserProvider
 		$uc=$this->token->where($identifier, $token)->where('created_at', '<', Carbon::now()->subDay())->delete();
   
 		$token =Token::where('access_token',$token)->first();
-		if($token[0]){
+		if(!$token[0]){
 		if(!count($token)){
 			return null;
 		}

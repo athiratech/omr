@@ -135,7 +135,15 @@ class Result extends Authenticatable
             }
            }
            else{
-            $student=DB::select('SELECT * FROM `t_parent_details` WHERE ADM_NO="'.Auth::guard('tparent')->id().'" LIMIT 1');
+            $student=DB::select('SELECT * FROM `t_parent_details` WHERE ADM_NO Like "%'.Auth::guard('tparent')->id().'" LIMIT 1');
+            // return Auth::guard('tparent')->user();
+            if(count($student)==0)
+               return [
+                        'Login' => [
+                            'response_message'=>"error username or password wrong",
+                            'response_code'=>"0"
+                           ],
+                    ];
              $details=[
                     'NAME'=>$student[0]->PARENT_NAME,
                     'USER'=>'PARENT',

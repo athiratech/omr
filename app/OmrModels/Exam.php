@@ -109,7 +109,7 @@ class Exam extends Model
   }
   public static function AnswerDetails($data){
     $type="";
-   $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl')->get();
+   $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl','test_code')->get();
 
    if($correctans[0]->omr_scanning_type=='advanced')
    {
@@ -138,6 +138,8 @@ class Exam extends Model
 
   }
   public static function NonAdvanceAnswer($data,$ans,$marked){
+    $sl=$ans[0]->sl;
+    $test_code=$ans[0]->test_code;
    $list=array();
    $correct=explode(',', $ans[0]->CorrectAnswer);
     $b1=explode(',', $data[6]);
@@ -151,6 +153,9 @@ class Exam extends Model
     $subject_name=array_filter($data[0]);
 
     $temp="";
+    if(count($marked['ansdata'])==0)
+      return "No Record Found";
+    
     for ($key=0; $key<=end($b3)-1; $key++) 
     { 
       $subjectwise=explode('-',$subject_list[$su]);
@@ -161,17 +166,22 @@ class Exam extends Model
       {
         $su++;        $sub++;
       }
-      $list[$i]= new \stdClass();
-      $list[$i]->{'question_no'}=$i;
-      $list[$i]->{'subject_name'}=$subject;
-      $list[$i]->{'correct_answer'}=$correct[$ans];
-      $list[$i]->{'marked_answer'}=$marked['ansdata'][$ans];
+      $list['Exam_Id']=$sl;
+      $list['Exam_Name']=$test_code;
+      $list['Subject'][$subject][$i]= new \stdClass();
+      $list['Subject'][$subject][$i]->{'question_no'}=$i;
+      // $list[$subject][$i]->{'subject_name'}=$subject;
+      $list['Subject'][$subject][$i]->{'correct_answer'}=$correct[$ans];
+      $list['Subject'][$subject][$i]->{'marked_answer'}=$marked['ansdata'][$ans];
+       $list['Number_of_Subjects']=count($subject_name);
       $i++;
       $ans++;
     }
     return $list;
   }
   public static function AdvanceAnswer($data,$ans,$marked){
+    $sl=$ans[0]->sl;
+    $test_code=$ans[0]->test_code;
     $list=array();
 
     $correct=explode(',', $ans[0]->CorrectAnswer);
@@ -182,7 +192,8 @@ class Exam extends Model
     $subject_name=array_filter($data[0]);
     $section_list=array_filter($data[1]);
     $temp="";
-
+    if(count($marked['ansdata'])==0)
+      return "No Record Found";
     foreach ($section_list as $key => $value) 
     {
       $subjectwise=explode('-',$subject_list[$su]);
@@ -196,13 +207,16 @@ class Exam extends Model
         $temp=$value;
         $s++;
       }
-      $list[$i]= new \stdClass();
-      $list[$i]->{'question_no'}=$key;
-      $list[$i]->{'question_type'}=$value;
-      $list[$i]->{'section'}='Section'.$s;
-      $list[$i]->{'subject_name'}=$subject;
-      $list[$i]->{'correct_answer'}=$correct[$ans];
-       $list[$i]->{'marked_answer'}=$marked['ansdata'][$ans];
+      $list['Exam_Id']=$sl;
+      $list['Exam_Name']=$test_code;
+      $list['Subject'][$subject]['Section'.$s][$i]= new \stdClass();
+      $list['Subject'][$subject]['Section'.$s][$i]->{'question_no'}=$key;
+      $list['Subject'][$subject]['Section'.$s][$i]->{'question_type'}=$value;
+      // $list[$i]->{'section'}='Section'.$s;
+      // $list[$i]->{'subject_name'}=$subject;
+      $list['Subject'][$subject]['Section'.$s][$i]->{'correct_answer'}=$correct[$ans];
+       $list['Subject'][$subject]['Section'.$s][$i]->{'marked_answer'}=$marked['ansdata'][$ans];
+       $list['Number_of_Subjects']=count($subject_name);
       $i++;
       $ans++;
       }
@@ -210,6 +224,7 @@ class Exam extends Model
   }
   public static function AnswerObtain($data,$ans,$type)
   {
+    $answer1=array();
       $ad=0;
       $ob=array();
      $abcd = array('A'=>1, 'B'=>2,'C'=>3 ,'D'=>4 ,'E'=>5 ,'F'=>6 ,'G'=>7 ,'H'=>8 ,'I'=>9,'U'=>0 );
@@ -219,7 +234,8 @@ class Exam extends Model
     if($ans[0]->omr_scanning_type=="advanced")
     {
     $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$ans[0]->sl.'/final/'.Auth::user()->CAMPUS_ID.'.iit';
-    $astring=static::advanced($path);
+    $astring=static::advanced($path,$ans[0]->sl);
+
      $answer=explode(',', $astring['Line']);
       $a=1;
       $answer1=array_slice($answer, 2);
@@ -228,7 +244,8 @@ class Exam extends Model
     else
     {
     $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$ans[0]->sl.'/final/'.Auth::user()->CAMPUS_ID.'.dat';
-    $astring=static::nonadvanced($path);
+    $astring=static::nonadvanced($path,$ans[0]->sl);
+     if(count($astring))
      $answer1=explode('   ', $astring['Line']);
       $a=1;
       $ad=1;
@@ -265,7 +282,7 @@ class Exam extends Model
 
 
 // ADVANCED
-public static function advanced($filename){
+public static function advanced($filename,$sl){
 
 $lines = file($filename);
 
@@ -276,7 +293,7 @@ $line_count=0;
 
 foreach ($lines as $line_num => $line)
   { 
-    $line=trim($line);    
+   $line=trim($line);    
 
 
       $current_single_iit_line=$line;
@@ -299,14 +316,29 @@ foreach ($lines as $line_num => $line)
           {
               $current_usn_flag="blank";  
           }
-  if(substr(Auth::id(),2)==$current_usn){
-    if($current_usn_flag!="D" || $current_usn_flag==""){
+
+          if(substr(Auth::id(),2)==$current_usn){
+    if($current_usn_flag=="blank"){
     return [
       "Flag"=>$current_usn_flag,
       "USN"=>$current_usn,
       "Line"=>$line,
             ];
           }
+    elseif($current_usn_flag=="A"){
+      $approve=DB::table('101_mismatch_approval_request')->where('STUD_ID',Auth::id())->where('test_sl',$sl)->where('status',1)->get();
+      if(count($approve))
+        return [
+            "Flag"=>$current_usn_flag,
+            "USN"=>$current_usn,
+            "Line"=>$line,
+                  ];
+                  else
+                    continue;
+    }
+    else{
+      continue;
+    }
         }
 
       
@@ -315,7 +347,7 @@ foreach ($lines as $line_num => $line)
 
 
   //NON ADVANCED--------------------------
-public static function nonadvanced($filename){
+public static function nonadvanced($filename,$sl){
 
   $lines = file($filename);
 
@@ -330,14 +362,13 @@ $count=1;
 
 for($in=0;$in<$it;$in=$in+4)
 {
-   $usnline=$lines[$in];
-   $seriesline=$lines[$in+1];
-   $qnoline=$lines[$in+2];
-   $ansline=$lines[$in+3];
-
+   $usnline=trim($lines[$in]);
+   $seriesline=trim($lines[$in+1]);
+   $qnoline=trim($lines[$in+2]);
+   $ansline=trim($lines[$in+3]);
  //DELETE
    $usnlinearray=explode("=",$usnline);   //.  No.=9277048-D
-
+   
    //echo json_encode($usnlinearray);
    $current_usn_with_if_flag=$usnlinearray[1]; // 9277048-D
    $usn_with_flag_array=explode("-",$current_usn_with_if_flag);
@@ -362,18 +393,36 @@ for($in=0;$in<$it;$in=$in+4)
    //echo "curf=".$current_usn_flag;echo "<br>";//exit;
    $only_usn=$usn_with_flag_array[0];
    $current_usn=$only_usn;
-
-  if(substr(Auth::id(),2)==$current_usn){
-    if($current_usn_flag!="D" || $current_usn_flag==""){
+// return 
+  if(substr(Auth::id(),2)==trim($current_usn)){
+    if($current_usn_flag=="blank"){
     return [
     "Flag"=>$current_usn_flag,
     "USN"=>$current_usn,
     "Line"=>$ansline,
           ];
         }
+     elseif($current_usn_flag=="A"){
+  $approve=DB::table('101_mismatch_approval_request')->where('STUD_ID',Auth::id())->where('test_sl',$sl)->where('status',1)->get();
+  if(count($approve)!=0){
+    return [
+        "Flag"=>$current_usn_flag,
+        "USN"=>$current_usn,
+        "Line"=>$ansline,
+              ];
+            }
+            else{
+              continue;
+            }
+       }
+    else{
+      continue;
+    }
       }
 
    }
+
+   return array();
   }
 
 }
