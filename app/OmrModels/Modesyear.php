@@ -42,7 +42,6 @@ class Modesyear extends Model
    $correctans=$exam;
    $correct=$correctans[0]['CorrectAnswer'];
 	$all_sub_marks_array=static::get_marks_string($to_from_range,$mark_file_long_string,$correct);
-	// return $all_sub_marks_array;
 
       $cal=[
        	"b"=>str_split($result[0]->Result_String),
@@ -52,7 +51,7 @@ class Modesyear extends Model
        	"se"=>$section,
        ];
        $analysis=static::strongweak($cal,$result,$exam[0]->max_marks);
-       return static::markcount($cal,$analysis);
+       return static::markcount($cal,$analysis,$result);
     }
 
 	public static function get_marks_string($to_from_range,$mark_file_long_string,$correct) //CRB not required
@@ -78,7 +77,6 @@ class Modesyear extends Model
 		  $this_mark=$mark_file_array[$mark];
 		    for($m=$one;$m<=$two;$m++)
 		    {	
-		    	// if(isset($correct[$m])){
 		    	if($otherarray[$m]=='X')
 		       $all_sub_marks_array[]=0;
 		   		else
@@ -91,10 +89,16 @@ class Modesyear extends Model
 		}
 		return $all_sub_marks_array;
 	}
-	public static function markcount($cal,$analysis){
+	public static function markcount($cal,$analysis,$result){
+		$extra=array();
 		if(is_array($cal['s'])){
-		$cal['s']=array_filter($cal['s']);
+		$cal['s']=array_filter($cal['s']);		
 		}
+		foreach ($cal['s'] as $key => $value) {
+			$value=strtoupper($value);
+		$extra[$value]=$result[0]->{$value};
+		}
+		$extra['TOTAL']=$result[0]->TOTAL;
 
 			if(isset($cal['s'][0]))
 				$a=0;
@@ -130,35 +134,22 @@ class Modesyear extends Model
 					$subjects=$cal['s'][$a];
 				}
 			if($value=="X"){
-				// $xt+=$cal['m'][$key];
 				$ad[$subjects][$secti][$key]=$cal['m'][$key];
-
-				// $ad[$cal['b'][$key]]=$value.'| '.$cal['m'][$key];
 			}
 			elseif($value=="G"){
-				// $gt+=$cal['m'][$key];
 				$ag[$subjects][$secti][$key]=$cal['m'][$key];
-				// $ag[$cal['b'][$key]]=$value.'| '.$cal['m'][$key];
 			}
 			elseif($value=="U"){
-				// $ut+=$cal['m'][$key];
 				$au[$subjects][$secti][$key]=$cal['m'][$key];
-				// $au[$cal['b'][$key]]=$value.'| '.$cal['m'][$key];
 			}
-			elseif($value=="P"){		
-					// $pt+=$cal['m'][$key];
-				// $ap[$cal['b'][$key]]=$value.'| '.$cal['m'][$key];
+			elseif($value=="P"){	
 				$ap[$subjects][$secti][$key]=$cal['m'][$key];				
 			}
 			elseif($value=="R"){
-					// $rt+=$cal['m'][$key];
-					$aa[$subjects][$secti][$key]=$cal['m'][$key];
-					// $aa[$cal['b'][$key]]=$value.'| '.$cal['m'][$key];		
+				$aa[$subjects][$secti][$key]=$cal['m'][$key];		
 			}
 			else{
-					// $wt+=$cal['m'][$key];
-					$ab[$subjects][$secti][$key]=$cal['m'][$key];				
-					// $ab[$cal['b'][$key]]=$value.'| '.$cal['m'][$key];			
+				$ab[$subjects][$secti][$key]=$cal['m'][$key];			
 			}
 			$sect++;
 
@@ -172,68 +163,103 @@ class Modesyear extends Model
 			"Partial"=>$ap,
 			"Grace"=>$ag,
 			"Deleted"=>$ad,
-			// "RT"=>$rt,
-			// "WT"=>$wt,
-			// "UT"=>$ut,
-			// "PT"=>$pt,
-			// "GT"=>$gt,
-			// "DT"=>$xt,
-			"Total"=>$t,
+			"Subject_Total"=>$extra,
+			"Exam_Total_Mark"=>$t,
 			"Analysis"=>$analysis,
 		];
 	}
 	public static function strongweak($cal,$ans,$max){
-		if(is_array($cal['s'])){
-		$cal['s']=array_filter($cal['s']);
+		if(is_array($cal['s']))
+		{
+			$cal['s']=array_filter($cal['s']);
+			$cal['s']=array_values($cal['s']);
 		}
 		$a=0;
 		$strong="";
 		$weak="";
-		$sectionstrong="";
-		$sectionweak="";
+		$sectionstrong=array();
+		$sectionweak=array();
 		$max_marks=explode(',',$max);
 		$perc=array();
 		foreach ($cal['s'] as $key => $value) {
-			$perc[$value]=($ans[0]->{$value}/$max_marks[$a])*100;
-			if($perc[$value]>75)
+			$perc[$value]=($ans[0]->{strtoupper($value)}/$max_marks[$a])*100;
+			if($perc[$value]>=75)
 				$strong.=','.$value;
-			if($perc[$value]<60)
+			if($perc[$value]<=60)
 				$weak.=$value.',';
 			$a++;
 		}
-		$ce=array_unique($cal['se']);
-		$ex=array_values($ce);
+		/*.......................Section Wise List............................*/
+		foreach ($cal['r'] as $key => $value) {
+			$ra=explode('-',$value);
+			$range1[]=$ra[0];
+			$range[]=end($ra);
+		}
+		if($cal['se'])
+		for ($i=0; $i <count($range); $i++) { 	
+			for ($j=$range1[$i]; $j <=$range[$i]; $j++) { 
+	       		 $ran[$i][$j]=$cal['se'][$j];						
+			}	
+		}
 		$secmax=array();
 		$secmin=array();
 		$k=0;
-		$l=0;
 		$sec=array();
-		for ($i=1; $i <=count($cal['b']) ; $i++) { 
-			$sec[$cal['se'][$i]][]=$cal['m'][$l];
-			if($cal['b'][$l]!="D" && $cal['b'][$l]!="U" && $cal['b'][$l]!="W" )
-			$sec[$cal['se'][$i].'o'][]=$cal['m'][$l];
-
-			$l++;
-		}
+		$l=0;
+		if(isset($ran))
+		foreach ($ran as $key1 => $value1) {	
+			$loop=array_values($ran[$key1]);
+			$ce=array_unique($ran[$key1]);
+			$ex=array_values($ce);
+			
+			foreach ($value1 as $key2 => $value2) {
+				$sec[$value2][]=$cal['m'][$key2-1];
+				if($cal['b'][$key2-1]!="D" && $cal['b'][$key2-1]!="U" && $cal['b'][$key2-1]!="W" ){
+				$sec[$value2.'o'][]=$cal['m'][$key2-1];
+				}
+			}
 		$de=array();
+		if(!empty($sec))
 		foreach ($ex as $key => $value) {
+			if(isset($sec[$value]))
 			$de[$value]=array_sum($sec[$value]);
 			if(isset($sec[$value.'o']))
 			$de[$value.'o']=array_sum($sec[$value.'o']);
-
 		}
+		if(!empty($de))
 		foreach ($ex as $key => $value) {
 			if (array_key_exists($value.'o',$de))
-				$de[$value.'p']=($de[$value.'o']/$de[$value])*100;
-			if(isset($de[$value.'p']))
-			if($de[$value.'p']>75)
-				$sectionstrong.=$ex[$key].',';
-			elseif($de[$value.'p']<60)
-				$sectionweak.=$ex[$key].',';
-			else{}
+				$de[$value.'p']=($de[$value.'o']/$de[$value])*100;	
+				else	
+				$de[$value.'p']=30;	
 
+			if(isset($de[$value.'p'])){
+			if($de[$value.'p']>=75)
+				if(isset($sectionstrong[$key1]))
+				$sectionstrong[$key1].=$ex[$key].',';
+				else {
+				$sectionstrong[$key1]=$ex[$key].',';
+				}
+			elseif($de[$value.'p']<=60)
+				if(isset($sectionweak[$key1]))
+				$sectionweak[$key1].=$ex[$key].',';		
+				else
+				$sectionweak[$key1]=$ex[$key].',';		
+			else{}
+				}
 
 		}
+		unset($sec);
+		$sec=array();
+	}
+	foreach ($cal['s'] as $key => $value) {
+		if(isset($sectionweak[$key]))
+		$sectionweak[$value]=$sectionweak[$key];
+		unset($sectionweak[$key]);
+		if(isset($sectionstrong[$key]))
+		$sectionstrong[$value]=$sectionstrong[$key];
+		unset($sectionstrong[$key]);
+	}
 		return [
 			"weak_subject"=>$weak,
 			"weak_section"=>$sectionweak,
