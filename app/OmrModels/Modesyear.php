@@ -169,6 +169,7 @@ class Modesyear extends Model
 		];
 	}
 	public static function strongweak($cal,$ans,$max){
+		/*.......................Subject Wise List............................*/
 		if(is_array($cal['s']))
 		{
 			$cal['s']=array_filter($cal['s']);
