@@ -18,15 +18,21 @@ use App\Http\Resources\Employee as UserResource;
 Route::get('testapi',function(){
 	return DB::table('t_student')->limit(20)->get();
 });
+	/*OMR*/
 	Route::post('userLogin', 'AuthController@tokenAuthAttempt');
-	Route::post('resultLogin', 'OmrControllers\ResultController@login');
 	Route::post('uploadResults','AuthController@upload');
-	Route::group([ 'middleware' => 'auth:token' ], function () {		
+	/*OMR Result Application*/
+	Route::post('resultLogin', 'OmrControllers\ResultController@login');
+	Route::group([ 'middleware' => 'auth:token' ], function () {	
+		/*OMR Result Application*/	
 		Route::post('total_percentage','OmrControllers\ResultController@total_percentage');
 		Route::post('answer_details','OmrControllers\ResultController@AnswerDetails');
 		Route::post('exam_info','OmrControllers\ResultController@exam_info');
 		Route::post('examlist','OmrControllers\ResultController@examlist');
 		Route::post('test_type_list','OmrControllers\ResultController@test_type_list');
+		Route::post('teacher_totalpercentage','OmrControllers\ResultController@teacher_percentage');
+		Route::post('teacher_examlist','OmrControllers\ResultController@teacher_examlist');
+		/*OMR*/
 		Route::get('groups','OmrControllers\BaseController@groups');
 		Route::get('class_years/{group_id}','OmrControllers\BaseController@class_year_wrt_group');
 		Route::get('streams/{group_id}/{class_id}','OmrControllers\BaseController@stream_wrt_group_class_year');
