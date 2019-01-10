@@ -12,8 +12,9 @@ class Subject extends Model
   protected $table='0_subjects';
   public $timestamps=false;
 
-    public static function teacher_percentage($data){
+    public static function teacher_percentage($data,$change){
         $output1=array();
+        $output=array();
         $output2=array();
         $group_id=$data->group_id;
         $class_id=$data->class_id;
@@ -46,9 +47,52 @@ class Subject extends Model
                     ->whereRaw('FIND_IN_SET(?,tm.test_mode_subjects)', [$subject_id])
                     ->select('eg.test_sl','tm.marks_upload_final_table_name','e.max_marks','e.model_year','e.paper','e.omr_scanning_type','tm.test_mode_name')->get();
 
+                 if($change=="p"){
+                  return static::examstudent($output,$subject_name,$section)['Result'];  
+                }
+                 elseif($change=="e"){
+                  $exam=static::examstudent($output,$subject_name,$section)['ExamList'];   
+                  foreach ($exam as $key => $value) {
+                    $examlist[$value->test_mode_name][$value->test_type_name]['test_code'][]=$value->test_code;
+                    $examlist[$value->test_mode_name][$value->test_type_name]['test_sl'][]=$value->sl;
+                    $examlist[$value->test_mode_name][$value->test_type_name]['start_date'][]=$value->start_date;
+                  }
+                  return $examlist;
+                  }               
+                   elseif($change=="s"){   
+                    // return $subject_name;
+                  $student=static::examstudent($output,$subject_name,$section)['StudentList'];  
+                  foreach ($student as $key1 => $value1) {
+                    foreach ($value1['obtained'] as $key => $value) {
+                      $studentlist[$value->test_code][$value->section_name]['STUD_ID'][]=$value->STUD_ID;
+                      $studentlist[$value->test_code][$value->section_name]['STUD_NAME'][]=$value->SURNAME.' '.$value->NAME;
+                      $studentlist[$value->test_code][$value->section_name]['STATE_RANK'][]=$value->STATE_RANK;
+                      $studentlist[$value->test_code][$value->section_name]['DISTRICT_RANK'][]=$value->DISTRICT_RANK;
+                      $studentlist[$value->test_code][$value->section_name]['CITY_RANK'][]=$value->CITY_RANK;
+                      $studentlist[$value->test_code][$value->section_name]['CAMP_RANK'][]=$value->CAMP_RANK;
+                      $studentlist[$value->test_code][$value->section_name]['SEC_RANK'][]=$value->SEC_RANK;
+                      $studentlist[$value->test_code][$value->section_name]['STREAM_RANK'][]=$value->STREAM_RANK;
+                      $studentlist[$value->test_code][$value->section_name][strtoupper($subject_name)][]=$value->{strtoupper($subject_name)};
+                      $studentlist[$value->test_code][$value->section_name]['max_marks']=$value1['max_marks'];
+                      $studentlist[$value->test_code][$value->section_name]['start_date']=$value->start_date;
+                    }
+                  }
+                  return $studentlist;
+                }
+
+    }
+    public static function examstudent($output,$subject_name,$section){
+
             foreach ($output as $key => $value) 
             {
-           $correctans=Exam::where('sl',$value->test_sl)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl','test_code')->get();
+           $correctans=DB::table('1_exam_admin_create_exam as e')
+                        ->join('0_test_types as ty','e.test_type','=','ty.test_type_id')
+                        ->join('0_test_modes as tm','tm.test_mode_id','e.mode')
+                         ->where('sl',$value->test_sl)
+                         ->select('e.model_year','e.paper','e.omr_scanning_type','e.to_from_range','e.subject_string_final','e.sl','e.test_code','tm.test_mode_id','ty.test_type_id','tm.test_mode_name','ty.test_type_name','e.start_date')
+                         ->get();
+
+           $examlist[]=$correctans[0];
 
            if($correctans[0]->omr_scanning_type=='advanced')
            {
@@ -69,20 +113,11 @@ class Subject extends Model
              $section1[] = $value1;
                 }
 
-             // $output1[]=DB::table($value->marks_upload_final_table_name.' as a')
-             //                ->join('t_student as st','st.ADM_NO','=','a.STUD_ID')
-             //                  ->where('test_code_sl_id',$value->test_sl)
-             //                  ->whereIn('st.SECTION_ID',$section)
-             //                  ->select(strtoupper($subject_name),'a.STUD_ID')
-             //                  ->select("MATHEMATICS")
-             //                  ->get();
-            // $output1[]=$value->test_mode_name;
-            $res=DB::select("select (".$list1."/".$list.")*100 as percentage from `101_MPC_MARKS` as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` where `test_code_sl_id` = '".$value->test_sl."' and `st`.`SECTION_ID` in (".implode(',',$section1).")");
-            // $output1[]=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,".strtoupper($subject_name)." from `101_MPC_MARKS` as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` where `test_code_sl_id` = '".$value->test_sl."' and `st`.`SECTION_ID` in ('".implode(',',$section1)."')");
-                              // select `MATHEMATICS` from `101_MPC_MARKS` as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` where `test_code_sl_id` = 2 and `st`.`SECTION_ID` in (78322, 22103, 22120, 22104, 22113, 37316))
-            // $result[]=static::exam_average($output1[$key]);
-            // if(isset($result[$value->test_mode_name]))
-            //     $result[$value->test_mode_name]=array_merge($result[$value->test_mode_name],$res);
+            $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,STATE_RANK,DISTRICT_RANK,CITY_RANK,CAMP_RANK,SEC_RANK,STREAM_RANK,st.NAME,st.SURNAME from `101_MPC_MARKS` as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$value->test_sl."' and `st`.`SECTION_ID` in (".implode(',',$section1).")");
+
+           $studentlist[$key]['obtained']=$res;
+           $studentlist[$key]['max_marks']=$list;
+
 
             $addition=0;
             foreach ($res as $key2 => $value2) {
@@ -95,7 +130,12 @@ class Subject extends Model
                      $result[$value->test_mode_name]=$addition/count($res);
             }           
 
-        return $result;       
-    }
+        return [
+          "Result"=>$result,
+          "ExamList"=>$examlist,
+          "StudentList"=>$studentlist
+        ];       
 
+    }
+    
 }

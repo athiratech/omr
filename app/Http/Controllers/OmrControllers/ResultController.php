@@ -38,11 +38,18 @@ class ResultController extends Controller
         return $res;
     }
     public function teacher_percentage(Request $request){
-        $res=Subject::teacher_percentage($request);
+        $change="p";
+        $res=Subject::teacher_percentage($request,$change);
         return $res;
     }
     public function teacher_examlist(Request $request){
-        $res=Subject::teacher_examlist($request);
+          $change="e";
+        $res=Subject::teacher_percentage($request,$change);
+        return $res;
+    }
+    public function teacher_studentlist(Request $request){
+          $change="s";
+        $res=Subject::teacher_percentage($request,$change);
         return $res;
     }
 }
