@@ -90,9 +90,21 @@ class Modesyear extends Model
 		return $all_sub_marks_array;
 	}
 	public static function markcount($cal,$analysis,$result){
+		$ar1=[
+			"aa",
+			"ab",
+			"au",
+			"ap",
+			"ag",
+			"ad",
+			];
 		$extra=array();
 		if(is_array($cal['s'])){
 		$cal['s']=array_filter($cal['s']);		
+		$ar2=array_values($cal['s']);
+		}
+		else{
+		$ar2=$cal['s'];
 		}
 		foreach ($cal['s'] as $key => $value) {
 			$value=strtoupper($value);
@@ -122,37 +134,69 @@ class Modesyear extends Model
 			if(!empty($cal['se']))
 					if($section!=$cal['se'][$sect])
 					{
-						if($count==3)
+						if($count==4)
 							$count=1;
 					$count++;
 					$section=$cal['se'][$sect];
 					$secti="Section".$count;
 					}
+					if($secti=="Section4")
+						$secti="Section1";
 				if($range[$b]==$key){
 					$b++;
 					$a++;
 					$subjects=$cal['s'][$a];
 				}
 			if($value=="X"){
-				$ad[$subjects][$secti][$key]=$cal['m'][$key];
+				if(isset($ad[$subjects][$secti]))
+				$ad[$subjects][$secti]+=$cal['m'][$key];
+				else
+				$ad[$subjects][$secti]=$cal['m'][$key];
 			}
 			elseif($value=="G"){
-				$ag[$subjects][$secti][$key]=$cal['m'][$key];
+				if(isset($ag[$subjects][$secti]))
+				$ag[$subjects][$secti]+=$cal['m'][$key];
+				else
+				$ag[$subjects][$secti]=$cal['m'][$key];
 			}
 			elseif($value=="U"){
-				$au[$subjects][$secti][$key]=$cal['m'][$key];
+				if(isset($au[$subjects][$secti]))
+				$au[$subjects][$secti]+=$cal['m'][$key];
+				else
+				$au[$subjects][$secti]=$cal['m'][$key];
 			}
 			elseif($value=="P"){	
-				$ap[$subjects][$secti][$key]=$cal['m'][$key];				
+				if(isset($ap[$subjects][$secti]))
+				$ap[$subjects][$secti]+=$cal['m'][$key];
+				else
+				$ap[$subjects][$secti]=$cal['m'][$key];
 			}
 			elseif($value=="R"){
-				$aa[$subjects][$secti][$key]=$cal['m'][$key];		
+				if(isset($aa[$subjects][$secti]))
+				$aa[$subjects][$secti]+=$cal['m'][$key];
+				else
+				$aa[$subjects][$secti]=$cal['m'][$key];
 			}
 			else{
-				$ab[$subjects][$secti][$key]=$cal['m'][$key];			
+				if(isset($ab[$subjects][$secti]))
+				$ab[$subjects][$secti]+=$cal['m'][$key];
+				else
+				$ab[$subjects][$secti]=$cal['m'][$key];
 			}
 			$sect++;
 
+		}
+		$ar3=$count;
+		foreach ($ar1 as $key => $value) 
+		{
+			foreach ($ar2 as $key1 => $value1) 
+			{
+				for ($i=1; $i <=$count ; $i++) 
+				{ 
+					if(!isset($$value[$value1]['Section'.$i]))
+						$$value[$value1]['Section'.$i]=0;
+				}
+			}
 		}
 		return [
 			"Section_Count"=>$count,

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\OmrControllers;
 
 use App\OmrModels\Result;
 use App\OmrModels\Exam;
+use App\OmrModels\Type;
 use App\OmrModels\Modesyear;
 use App\OmrModels\Subject;
 use  File;
@@ -35,6 +36,10 @@ class ResultController extends Controller
     }
     public function exam_info(Request $request){
         $res=Modesyear::exam_info($request);
+        return $res;
+    }
+    public function teacher_exam_info(Request $request){
+        $res=Type::teacher_exam_info($request);
         return $res;
     }
     public function teacher_percentage(Request $request){
