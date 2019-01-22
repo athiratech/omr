@@ -21,7 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Token extends Model
 {
-    protected $fillable=['user_id','expiry_time','access_token'];
+    protected $fillable=['user_id','user_type','expiry_time','access_token'];
 
     	public function user () {
 			return $this->belongsTo(Employee::class, 'user_id', 'id')->whereRaw('id !=""');

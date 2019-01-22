@@ -34,6 +34,7 @@ Route::get('testapi',function(){
 		Route::post('teacher_totalpercentage','OmrControllers\ResultController@teacher_percentage');
 		Route::post('teacher_examlist','OmrControllers\ResultController@teacher_examlist');
 		Route::post('teacher_studentlist','OmrControllers\ResultController@teacher_studentlist');
+		Route::post('sectionlist','OmrControllers\ResultController@sectionlist');
 		/*OMR*/
 		Route::get('groups','OmrControllers\BaseController@groups');
 		Route::get('class_years/{group_id}','OmrControllers\BaseController@class_year_wrt_group');

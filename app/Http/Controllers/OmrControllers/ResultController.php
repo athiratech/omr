@@ -35,7 +35,7 @@ class ResultController extends Controller
         return $res;
     }
     public function exam_info(Request $request){
-        $res=Modesyear::exam_info($request);
+        $res=Modesyear::exam_info($request,0);
         return $res;
     }
     public function teacher_exam_info(Request $request){
@@ -55,6 +55,11 @@ class ResultController extends Controller
     public function teacher_studentlist(Request $request){
           $change="s";
         $res=Subject::teacher_percentage($request,$change);
+        return $res;
+    }
+    public function sectionlist(Request $request){
+          // $change="s";
+        $res=Subject::sectionlist($request);
         return $res;
     }
 }

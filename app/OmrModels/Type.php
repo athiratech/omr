@@ -26,7 +26,6 @@ class Type extends Model
     				->wherein('st.SECTION_ID',$section)
     				->select($table[0].'.*')
     				->get();
-    				// return $result;
     	if(count($result)==0){
     		return [
                         'Login' => [
@@ -53,7 +52,6 @@ class Type extends Model
    $correctans=$exam;
    $correct=$correctans[0]['CorrectAnswer'];
 	$all_sub_marks_array=static::get_marks_string($to_from_range,$mark_file_long_string,$correct);
-// return $all_sub_marks_array;
 	   $ar1=[
 			"Right",
 			"Wrong",
@@ -89,7 +87,6 @@ class Type extends Model
 	   	$exact_ans['Subjects']=$markcount[0]['Subjects'];
 	   	 foreach ($ar2 as $key9 => $value9) {
 	   	for ($i=1; $i <=$ar3 ; $i++) { 
-	   	 	// return "hai";
 	   		if(!empty($markcount[0]['Sectionwise_total'][$ar2[$key9]]['Section'.$i]))
 	   		{
 	   			$exact_ans['Sectionwise_total'][$ar2[$key9]]['Section'.$i]=array_sum($markcount[0]['Sectionwise_total'][$ar2[$key9]]['Section'.$i])*count($markcount);  
@@ -102,7 +99,6 @@ class Type extends Model
 		   }
 		}
 	
-	// return $exact_ans;
 	foreach ($markcount as $key4 => $value4) 
 		   {
 	   foreach ($ar1 as $key => $value) {
@@ -141,7 +137,6 @@ class Type extends Model
 
 	   }
 	}
-	// return $markcount;
 	       $analysis=static::strongweak($exact_ans,$ar2,$section);
 
 	   return $analysis;
@@ -211,7 +206,6 @@ class Type extends Model
 				$section="";
 				$xt=0;$gt=0;$pt=0;$ut=0;$rt=0;$wt=0;
 				$t=array_sum($cal['m']);
-				// return $cal['b'];
 		foreach ($cal['b'] as $key => $value) {
 			if(!empty($cal['se']))
 					if($section!=$cal['se'][$sect])
@@ -269,7 +263,6 @@ class Type extends Model
 	}
 	public static function strongweak($ans,$sub,$section)
 	{	
-		// return $ans;
 		$cal['s']=$sub;
 		$ar2=$sub;
 
@@ -281,7 +274,6 @@ class Type extends Model
 			"Grace",
 			"Deleted"
 			];
-			// return $ans;
 	   foreach ($ar1 as $key => $value) {
 
 	   	foreach ($cal['s'] as $key2 => $value2) {
@@ -308,9 +300,7 @@ class Type extends Model
 		$sectionstrong=array();
 		$sectionweak=array();
 		$perc=array();
-		// return $ans;
 		foreach ($cal['s'] as $key => $value) {
-			// return strtolower($value);
 			$perc[$value]=($ans['Subject_Total'][strtoupper($value)]/array_sum($ans['Sectionwise_total'][$value]))*100;
 			if($perc[$value]>=75)
 				$strong.=$value.',';

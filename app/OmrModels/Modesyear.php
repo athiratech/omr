@@ -12,9 +12,12 @@ class Modesyear extends Model
   protected $table='0_test_modes_years';
   public $timestamps=false;
   
-    public static function exam_info($data){
+    public static function exam_info($data,$ch){
     	$exam=Exam::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl','test_code','mode','mark_file_long_string','max_marks')->get();
     	$table=Mode::where('test_mode_id',$exam[0]->mode)->pluck('marks_upload_final_table_name');
+    	if($ch==1)
+    	$result=DB::table($table[0])->where('STUD_ID',$data->STUD_ID)->where('test_code_sl_id',$data->exam_id)->get();
+    	else
     	$result=DB::table($table[0])->where('STUD_ID',Auth::id())->where('test_code_sl_id',$data->exam_id)->get();
     	if(count($result)==0){
     		return [
