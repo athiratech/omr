@@ -250,7 +250,7 @@ class Type extends Model
 		return [
 			"Sectionwise_total"=>$at,
 			"Section_Count"=>$count,
-			"Subjects"=>$cal['s'],
+			"Subjects"=>array_values($cal['s']),
 			"Right"=>$aa,
 			"Wrong"=>$ab,
 			"Unattempted"=>$au,
