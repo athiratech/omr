@@ -72,27 +72,30 @@ class Subject extends Model
                   $exam=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id)['ExamList'];   
                         $block_no=DB::table('Result_Application_BlockCount')->where('API','teacher_examlist')->pluck('Block_Count');
                   foreach ($exam as $key => $value) {
-                    if(isset($examlist[$value->test_mode_name][$value->test_type_name]['test_code'])){
+                    if(isset($examlist['test_code'])){
                   
                       $test[]=$value->test_code;
                       $page=$data->page;
-                      if(count($examlist[$value->test_mode_name][$value->test_type_name]['test_code'])!=$page)
+                      if(count($examlist['test_code'])!=$page)
                       {
-                      $examlist[$value->test_mode_name][$value->test_type_name]['test_code'][]=$value->test_code;
+                      $examlist['test_code'][]=$value->test_code;
                     $data1=new \stdClass(); 
                     $data1->exam_id=$value->sl;
-                    $examlist[$value->test_mode_name][$value->test_type_name]['Exam_Info'][]=Type::teacher_exam_info($data1);
-                    $examlist[$value->test_mode_name][$value->test_type_name]['test_sl'][]=$value->sl;
-                    $examlist[$value->test_mode_name][$value->test_type_name]['start_date'][]=$value->start_date;
+                    $examlist['Exam_Info'][]=Type::teacher_exam_info($data1);
+                    $examlist['test_sl'][]=$value->sl;
+                    $examlist['start_date'][]=$value->start_date;
                         }
                     }
                     else{
-                    $examlist[$value->test_mode_name][$value->test_type_name]['test_code'][]=$value->test_code;
+                    $examlist['test_code'][]=$value->test_code;
                     $data1=new \stdClass(); 
                     $data1->exam_id=$value->sl;
-                    $examlist[$value->test_mode_name][$value->test_type_name]['Exam_Info'][]=Type::teacher_exam_info($data1);
-                    $examlist[$value->test_mode_name][$value->test_type_name]['test_sl'][]=$value->sl;
-                    $examlist[$value->test_mode_name][$value->test_type_name]['start_date'][]=$value->start_date;
+                    $examlist['Exam_Info'][]=Type::teacher_exam_info($data1);
+                    $examlist['test_sl'][]=$value->sl;
+                    $examlist['start_date'][]=$value->start_date;
+                    $examlist['test_type_name'][]=$value->test_type_name;
+                    $examlist['test_mode_name'][]=$value->test_mode_name;
+
                         }
                   }
                   // return $block_no;
@@ -155,7 +158,8 @@ class Subject extends Model
                     "Start_Date"=>$studentlist1['start_date'],
                     "Test_Code"=>$studentlist1['test_code'],
                     "Section_Name"=>$studentlist1['section_name'],
-                    "Data"=>$studentlist];
+                    "Data"=>$studentlist
+                  ];
                 }
 
     }

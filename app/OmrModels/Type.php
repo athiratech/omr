@@ -278,8 +278,9 @@ class Type extends Model
 
 	   	foreach ($cal['s'] as $key2 => $value2) {
 	   		for ($i=1; $i <=$ans['Section_Count']; $i++) {
-	   			$ans[$ar1[$key]][$ar2[$key2]]['Section'.$i]=($ans[$ar1[$key]][$ar2[$key2]]['Section'.$i]/$ans['Sectionwise_total'][$ar2[$key2]]['Section'.$i])*100;  
+	   			$ans[$ar1[$key]][$ar2[$key2].'_Section'.$i]=($ans[$ar1[$key]][$ar2[$key2]]['Section'.$i]/$ans['Sectionwise_total'][$ar2[$key2]]['Section'.$i])*100; 
 	   	   		}	
+	   			
 	   		} 
 	   }
 		$se=array_values(array_unique($section));
@@ -299,6 +300,8 @@ class Type extends Model
 		$weak="";
 		$sectionstrong=array();
 		$sectionweak=array();
+		$sectionstrong1=array();
+		$sectionweak1=array();
 		$perc=array();
 		foreach ($cal['s'] as $key => $value) {
 			$perc[$value]=($ans['Subject_Total'][strtoupper($value)]/array_sum($ans['Sectionwise_total'][$value]))*100;
@@ -346,14 +349,36 @@ class Type extends Model
 			}
 		}
 		unset($ans['Sectionwise_total']);
+		unset($ans['Section_Count']);
+		unset($ans['Subjects']);
 		unset($ans['Subject_Total']);
 		unset($ans['Exam_Total_Mark']);
+		foreach ($cal['s'] as $key => $value) 
+		{
+			if(isset($sectionweak[$value])){
+			$sectionweak1['subjects'][]=$value;
+			$sectionweak1['type'][]=$sectionweak[$value];
+			}
+			if(isset($sectionstrong[$value]))	{		
+			$sectionstrong1['subjects'][]=$value;
+			$sectionstrong1['type'][]=$sectionstrong[$value];
+			}
+		}
+
+	   foreach ($ar1 as $key => $value) 
+	   {
+	   	foreach ($cal['s'] as $key2 => $value2) 
+	   	{
+		if(isset($ans[$ar1[$key]][$ar2[$key2]]))
+	   			unset($ans[$ar1[$key]][$ar2[$key2]]); 
+	   	}
+	   }
 		return [
 			"Answer_details"=>$ans,
 			"weak_subject"=>$weak,
-			"weak_section"=>$sectionweak,
+			"weak_section"=>$sectionweak1,
 			"strong_subject"=>$strong,
-			"strong_section"=>$sectionstrong,
+			"strong_section"=>$sectionstrong1,
 				];
 	}
 }
