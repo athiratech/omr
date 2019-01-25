@@ -23,7 +23,8 @@ Route::get('testapi',function(){
 	Route::post('uploadResults','AuthController@upload');
 	/*OMR Result Application*/
 	Route::post('resultLogin', 'OmrControllers\ResultController@login');
-	Route::group([ 'middleware' => 'auth:token' ], function () {	
+	Route::group([ 'middleware' => 'auth:token' ], function () 
+	{	
 		/*OMR Result Application*/	
 		Route::post('total_percentage','OmrControllers\ResultController@total_percentage');
 		Route::post('answer_details','OmrControllers\ResultController@AnswerDetails');
@@ -31,7 +32,7 @@ Route::get('testapi',function(){
 		Route::post('teacher_exam_info','OmrControllers\ResultController@teacher_exam_info');
 		Route::post('examlist','OmrControllers\ResultController@examlist');
 		Route::post('test_type_list','OmrControllers\ResultController@test_type_list');
-		Route::post('teacher_totalpercentage','OmrControllers\ResultController@teacher_percentage');
+		// Route::post('teacher_totalpercentage','OmrControllers\ResultController@teacher_percentage');
 		Route::post('teacher_examlist','OmrControllers\ResultController@teacher_examlist');
 		Route::post('teacher_studentlist','OmrControllers\ResultController@teacher_studentlist');
 		Route::post('sectionlist','OmrControllers\ResultController@sectionlist');

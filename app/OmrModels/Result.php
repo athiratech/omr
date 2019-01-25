@@ -29,6 +29,7 @@ class Result extends Authenticatable
    use Notifiable;
    public static function login($data){
          $msg="This is old token";
+         $campus="";
          //Login with three driver for different login
         if($data->user_type=="employee")
         {
@@ -47,14 +48,15 @@ class Result extends Authenticatable
             if(Auth::id()){
                 $client = Employee::find(Auth::id());
                 $uc=$client->tokens()->where('created_at', '<', Carbon::now()->subDay())->delete();
-                
+                $campus=DB::table('t_campus')->where('CAMPUS_ID',Auth::user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
                 $details=[
-                    'USER_NAME'=>Auth::user()->USER_NAME,
-                    'SURNAME'=>Auth::user()->SURNAME,
-                    'NAME'=>Auth::user()->NAME,
+                    'USER_NAME'=>ucfirst(strtolower(Auth::user()->USER_NAME)),
+                    'CAMPUS_NAME'=>ucfirst(strtolower($campus[0])),
+                    'SURNAME'=>ucfirst(strtolower(Auth::user()->SURNAME)),
+                    'NAME'=>ucfirst(strtolower(Auth::user()->NAME)),
                     'USER'=>'EMPLOYEE',
-                    'DEPARTMENT'=>Auth::user()->SUBJECT,
-                    'DESIGNATION'=>Auth::user()->DESIGNATION,
+                    'DEPARTMENT'=>ucfirst(strtolower(Auth::user()->SUBJECT)),
+                    'DESIGNATION'=>ucfirst(strtolower(Auth::user()->DESIGNATION)),
                     'CAMPUS_ID'=>Auth::user()->CAMPUS_ID
                           ];
             $role=DB::table('roles')
@@ -85,7 +87,7 @@ class Result extends Authenticatable
                             'response_message'=>"success",
                             'response_code'=>"1",
                             'Token'=>$token->access_token,
-                            'Role'=>$c,
+                            // 'Role'=>$c,
                             ],
                             'Details'=>$details,
                             'Subject'=>$subject,
@@ -94,12 +96,13 @@ class Result extends Authenticatable
             }
         }
                   elseif(Auth::guard('t_student')->id()){
-          
+           $campus=DB::table('t_campus')->where('CAMPUS_ID',Auth::guard('t_student')->user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
                 $details=[
-                    'NAME'=>Auth::guard('t_student')->user()->NAME,
-                    'USER_NAME'=>Auth::guard('t_student')->user()->USER_NAME,
-                    'SURNAME'=>Auth::guard('t_student')->user()->SURNAME,
+                    'NAME'=>ucfirst(strtolower(Auth::guard('t_student')->user()->NAME)),
+                    'USER_NAME'=>ucfirst(strtolower(Auth::guard('t_student')->user()->USER_NAME)),
+                    'SURNAME'=>ucfirst(strtolower(Auth::guard('t_student')->user()->SURNAME)),
                     'USER'=>'STUDENT',
+                    'CAMPUS_NAME'=>ucfirst(strtolower($campus[0])),
                     'GROUP'=>Auth::guard('t_student')->user()->GROUP_NAME,
                     'SUBJECT'=>Auth::guard('t_student')->user()->SUBJECT,
                     'CAMPUS_ID'=>Auth::guard('t_student')->user()->CAMPUS_ID,
@@ -136,6 +139,7 @@ class Result extends Authenticatable
            }
            else{
             $student=DB::select('SELECT * FROM `t_parent_details` WHERE ADM_NO Like "%'.Auth::guard('tparent')->id().'" LIMIT 1');
+            $campus=DB::table('t_campus')->where('CAMPUS_ID',Auth::guard('tparent')->user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
             // return Auth::guard('tparent')->user();
             if(count($student)==0)
                return [
@@ -145,9 +149,10 @@ class Result extends Authenticatable
                            ],
                     ];
              $details=[
-                    'NAME'=>$student[0]->PARENT_NAME,
+                    'NAME'=>ucfirst(strtolower($student[0]->PARENT_NAME)),
                     'USER'=>'PARENT',
-                    'STUDENT'=>Auth::guard('tparent')->user()->NAME,
+                    'CAMPUS_NAME'=>ucfirst(strtolower($campus[0])),
+                    'STUDENT'=>ucfirst(strtolower(Auth::guard('tparent')->user()->NAME)),
                     'CAMPUS_ID'=>Auth::guard('tparent')->user()->CAMPUS_ID,
                     'YEAR'=>Auth::guard('tparent')->user()->CLASS_ID
                           ];
@@ -179,7 +184,7 @@ class Result extends Authenticatable
                             'response_message'=>"success",
                             'response_code'=>"1",
                         'Token'=>$token[0],
-                        'Role'=>$c,
+                        // 'Role'=>$c,
                             ],
                         'Details'=>$details,
                         'Subject'=>$subject,

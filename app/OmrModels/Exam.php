@@ -57,14 +57,14 @@ class Exam extends Model
         $mode[$subject_marks[0]->test_mode_name]=$calculation;  
         }       
       } 
-    }
+    }$a=0;
     foreach($mode as $key=>$value){
-        $res_key[] = $key;
-        $res_val[] = $value;
+        $res_key[$a]["Mode_name"] = $key;
+        $res_key[$a][ "Percentage"] = number_format((float) $value, '2', '.', '');
+        $a++;
         }
     return [
-        "Mode"=>["Mode_name"=>$res_key,
-                  "Percentage"=>$res_val],
+        "Mode"=>["data"=>$res_key],
         "Marklist"=>$marklist,
         ];
     

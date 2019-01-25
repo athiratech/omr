@@ -163,8 +163,8 @@ class Subject extends Model
                 }
 
     }
-    public static function examstudent($output,$subject_name,$section,$exam_id,$section_id){
-
+    public static function examstudent($output,$subject_name,$section,$exam_id,$section_id)
+    {
         $examlist=array();
         $studentlist=array();
             $result=array();
@@ -222,10 +222,15 @@ class Subject extends Model
                      $result[$value->test_mode_name]=($result[$value->test_mode_name]+($addition/count($res)))/2;
                  else
                      $result[$value->test_mode_name]=$addition/count($res);
-            }           
-
+            }     
+            $a=0;      
+            foreach ($result as $key => $value) {
+             $final[$a]['Mode_name']=$value; 
+             $final[$a]['Percentage']=$key; 
+             $a++;
+            }
         return [
-          "Result"=>$result,
+          "Result"=>["data"=>$final],
           "ExamList"=>$examlist,
           "StudentList"=>$studentlist
         ];       

@@ -244,92 +244,92 @@ class Modesyear extends Model
 			$a++;
 		}
 		/*.......................Section Wise List............................*/
-		foreach ($cal['r'] as $key => $value) {
-			$ra=explode('-',$value);
-			$range1[]=$ra[0];
-			$range[]=end($ra);
-		}
-		if($cal['se'])
-		for ($i=0; $i <count($range); $i++) { 	
-			for ($j=$range1[$i]; $j <=$range[$i]; $j++) { 
-	       		 $ran[$i][$j]=$cal['se'][$j];						
-			}	
-		}
-		$secmax=array();
-		$secmin=array();
-		$k=0;
-		$sec=array();
-		$l=0;
-		if(isset($ran))
-		foreach ($ran as $key1 => $value1) 
-		{	
-			$loop=array_values($ran[$key1]);
-			$ce=array_unique($ran[$key1]);
-			$ex=array_values($ce);
+	// 	foreach ($cal['r'] as $key => $value) {
+	// 		$ra=explode('-',$value);
+	// 		$range1[]=$ra[0];
+	// 		$range[]=end($ra);
+	// 	}
+	// 	if($cal['se'])
+	// 	for ($i=0; $i <count($range); $i++) { 	
+	// 		for ($j=$range1[$i]; $j <=$range[$i]; $j++) { 
+	//        		 $ran[$i][$j]=$cal['se'][$j];						
+	// 		}	
+	// 	}
+	// 	$secmax=array();
+	// 	$secmin=array();
+	// 	$k=0;
+	// 	$sec=array();
+	// 	$l=0;
+	// 	if(isset($ran))
+	// 	foreach ($ran as $key1 => $value1) 
+	// 	{	
+	// 		$loop=array_values($ran[$key1]);
+	// 		$ce=array_unique($ran[$key1]);
+	// 		$ex=array_values($ce);
 			
-			foreach ($value1 as $key2 => $value2) 
-			{
-				$sec[$value2][]=$cal['m'][$key2-1];
-				if($cal['b'][$key2-1]!="D" && $cal['b'][$key2-1]!="U" && $cal['b'][$key2-1]!="W" ){
-				$sec[$value2.'o'][]=$cal['m'][$key2-1];
-				}
-			}
-		$de=array();
-		if(!empty($sec))
-		foreach ($ex as $key => $value) {
-			if(isset($sec[$value]))
-			$de[$value]=array_sum($sec[$value]);
-			if(isset($sec[$value.'o']))
-			$de[$value.'o']=array_sum($sec[$value.'o']);
-		}
-		if(!empty($de))
-		foreach ($ex as $key => $value) {
-			if (array_key_exists($value.'o',$de))
-				$de[$value.'p']=($de[$value.'o']/$de[$value])*100;	
-				else	
-				$de[$value.'p']=30;	
+	// 		foreach ($value1 as $key2 => $value2) 
+	// 		{
+	// 			$sec[$value2][]=$cal['m'][$key2-1];
+	// 			if($cal['b'][$key2-1]!="D" && $cal['b'][$key2-1]!="U" && $cal['b'][$key2-1]!="W" ){
+	// 			$sec[$value2.'o'][]=$cal['m'][$key2-1];
+	// 			}
+	// 		}
+	// 	$de=array();
+	// 	if(!empty($sec))
+	// 	foreach ($ex as $key => $value) {
+	// 		if(isset($sec[$value]))
+	// 		$de[$value]=array_sum($sec[$value]);
+	// 		if(isset($sec[$value.'o']))
+	// 		$de[$value.'o']=array_sum($sec[$value.'o']);
+	// 	}
+	// 	if(!empty($de))
+	// 	foreach ($ex as $key => $value) {
+	// 		if (array_key_exists($value.'o',$de))
+	// 			$de[$value.'p']=($de[$value.'o']/$de[$value])*100;	
+	// 			else	
+	// 			$de[$value.'p']=30;	
 
-			if(isset($de[$value.'p'])){
-			if($de[$value.'p']>=75)
-				if(isset($sectionstrong[$key1]))
-				$sectionstrong[$key1].=$ex[$key].',';
-				else {
-				$sectionstrong[$key1]=$ex[$key].',';
-				}
-			elseif($de[$value.'p']<=60)
-				if(isset($sectionweak[$key1]))
-				$sectionweak[$key1].=$ex[$key].',';		
-				else
-				$sectionweak[$key1]=$ex[$key].',';		
-			else{}
-				}
+	// 		if(isset($de[$value.'p'])){
+	// 		if($de[$value.'p']>=75)
+	// 			if(isset($sectionstrong[$key1]))
+	// 			$sectionstrong[$key1].=$ex[$key].',';
+	// 			else {
+	// 			$sectionstrong[$key1]=$ex[$key].',';
+	// 			}
+	// 		elseif($de[$value.'p']<=60)
+	// 			if(isset($sectionweak[$key1]))
+	// 			$sectionweak[$key1].=$ex[$key].',';		
+	// 			else
+	// 			$sectionweak[$key1]=$ex[$key].',';		
+	// 		else{}
+	// 			}
 
-		}
-		unset($sec);
-		$sec=array();
-	}
-	$a=0;
-	foreach ($cal['s'] as $key => $value) {
-		if(isset($sectionweak[$key]))
-		$sectionweak['type'][]=$sectionweak[$key];
-		else
-		$sectionweak['type'][]="-";
+	// 	}
+	// 	unset($sec);
+	// 	$sec=array();
+	// }
+	// $a=0;
+	// foreach ($cal['s'] as $key => $value) {
+	// 	if(isset($sectionweak[$key]))
+	// 	$sectionweak['type'][]=$sectionweak[$key];
+	// 	else
+	// 	$sectionweak['type'][]="-";
 
-		$sectionweak['subjects'][]=$value;
-		unset($sectionweak[$key]);
-		if(isset($sectionstrong[$key]))
-		$sectionstrong['type'][]=$sectionstrong[$key];
-		else
-		$sectionstrong['type'][]="-";
+	// 	$sectionweak['subjects'][]=$value;
+	// 	unset($sectionweak[$key]);
+	// 	if(isset($sectionstrong[$key]))
+	// 	$sectionstrong['type'][]=$sectionstrong[$key];
+	// 	else
+	// 	$sectionstrong['type'][]="-";
 
-		$sectionstrong['subjects'][]=$value;
-		unset($sectionstrong[$key]);
-	}
+	// 	$sectionstrong['subjects'][]=$value;
+	// 	unset($sectionstrong[$key]);
+	// }
 		return [
 			"weak_subject"=>$weak,
-			"weak_section"=>$sectionweak,
+			// "weak_section"=>$sectionweak,
 			"strong_subject"=>$strong,
-			"strong_section"=>$sectionstrong,
+			// "strong_section"=>$sectionstrong,
 				];
 	}
 }

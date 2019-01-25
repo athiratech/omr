@@ -19,7 +19,14 @@ class ResultController extends Controller
       return $res;      
     }
     public function total_percentage(Request $request){
+        if($request->user_type=='student' || $request->user_type=='parent' ){
         $res=Exam::type($request);
+        }
+        else{
+            $change="p";
+        $res=Subject::teacher_percentage($request,$change);
+        }
+
         return $res;
     }
     public function test_type_list(Request $request){
@@ -42,11 +49,11 @@ class ResultController extends Controller
         $res=Type::teacher_exam_info($request);
         return $res;
     }
-    public function teacher_percentage(Request $request){
-        $change="p";
-        $res=Subject::teacher_percentage($request,$change);
-        return $res;
-    }
+    // public function teacher_percentage(Request $request){
+    //     $change="p";
+    //     $res=Subject::teacher_percentage($request,$change);
+    //     return $res;
+    // }
     public function teacher_examlist(Request $request){
           $change="e";
         $res=Subject::teacher_percentage($request,$change);

@@ -312,58 +312,58 @@ class Type extends Model
 			$a++;
 		}
 		/*.......................Section Wise List............................*/
-		foreach ($ar as $key => $value) 
-		{			
-			foreach ($cal['s'] as $key1 => $value1) 
-			{
-				for ($i=1; $i <=$section ; $i++) { 
-				if(isset($total['Obtained'][$value1]['Section'.$i]))
-			$total['Obtained'][$value1]['Section'.$i]+=$ans[$value][$value1]['Section'.$i];
-				else
-			$total['Obtained'][$value1]['Section'.$i]=$ans[$value][$value1]['Section'.$i];
+		// foreach ($ar as $key => $value) 
+		// {			
+		// 	foreach ($cal['s'] as $key1 => $value1) 
+		// 	{
+		// 		for ($i=1; $i <=$section ; $i++) { 
+		// 		if(isset($total['Obtained'][$value1]['Section'.$i]))
+		// 	$total['Obtained'][$value1]['Section'.$i]+=$ans[$value][$value1]['Section'.$i];
+		// 		else
+		// 	$total['Obtained'][$value1]['Section'.$i]=$ans[$value][$value1]['Section'.$i];
 						
-				}
+		// 		}
 				
-			}
-		}
-		if(!empty($se))
-		foreach ($cal['s'] as $key => $value) {
-			for ($i=1; $i<=$section ; $i++) { 
-				$per[$value]['Section'.$i]=($total['Obtained'][$value]['Section'.$i]/	$ans['Sectionwise_total'][$value]['Section'.$i])*100;
-				if($per[$value]['Section'.$i]>=75)
-				{
-					if(isset($sectionstrong[$value]))
-					$sectionstrong[$value].=','.$se[$i-1];
-					else
-					$sectionstrong[$value]=','.$se[$i-1];
+		// 	}
+		// }
+		// if(!empty($se))
+		// foreach ($cal['s'] as $key => $value) {
+		// 	for ($i=1; $i<=$section ; $i++) { 
+		// 		$per[$value]['Section'.$i]=($total['Obtained'][$value]['Section'.$i]/	$ans['Sectionwise_total'][$value]['Section'.$i])*100;
+		// 		if($per[$value]['Section'.$i]>=75)
+		// 		{
+		// 			if(isset($sectionstrong[$value]))
+		// 			$sectionstrong[$value].=','.$se[$i-1];
+		// 			else
+		// 			$sectionstrong[$value]=','.$se[$i-1];
 
-				}
-				elseif($per[$value]['Section'.$i]<=60)
-				{
-					if(isset($sectionweak[$value]))
-					$sectionweak[$value].=','.$se[$i-1];
-					else
-					$sectionweak[$value]=','.$se[$i-1];
+		// 		}
+		// 		elseif($per[$value]['Section'.$i]<=60)
+		// 		{
+		// 			if(isset($sectionweak[$value]))
+		// 			$sectionweak[$value].=','.$se[$i-1];
+		// 			else
+		// 			$sectionweak[$value]=','.$se[$i-1];
 
-				}
-			}
-		}
+		// 		}
+		// 	}
+		// }
 		unset($ans['Sectionwise_total']);
 		unset($ans['Section_Count']);
 		unset($ans['Subjects']);
 		unset($ans['Subject_Total']);
 		unset($ans['Exam_Total_Mark']);
-		foreach ($cal['s'] as $key => $value) 
-		{
-			if(isset($sectionweak[$value])){
-			$sectionweak1['subjects'][]=$value;
-			$sectionweak1['type'][]=$sectionweak[$value];
-			}
-			if(isset($sectionstrong[$value]))	{		
-			$sectionstrong1['subjects'][]=$value;
-			$sectionstrong1['type'][]=$sectionstrong[$value];
-			}
-		}
+		// foreach ($cal['s'] as $key => $value) 
+		// {
+		// 	if(isset($sectionweak[$value])){
+		// 	$sectionweak1['subjects'][]=$value;
+		// 	$sectionweak1['type'][]=$sectionweak[$value];
+		// 	}
+		// 	if(isset($sectionstrong[$value]))	{		
+		// 	$sectionstrong1['subjects'][]=$value;
+		// 	$sectionstrong1['type'][]=$sectionstrong[$value];
+		// 	}
+		// }
 
 	   foreach ($ar1 as $key => $value) 
 	   {
@@ -376,9 +376,9 @@ class Type extends Model
 		return [
 			"Answer_details"=>$ans,
 			"weak_subject"=>$weak,
-			"weak_section"=>$sectionweak1,
+			// "weak_section"=>$sectionweak1,
 			"strong_subject"=>$strong,
-			"strong_section"=>$sectionstrong1,
+			// "strong_section"=>$sectionstrong1,
 				];
 	}
 }
