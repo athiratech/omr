@@ -207,15 +207,17 @@ class Exam extends Model
         $temp=$value;
         $s++;
       }
+      if($s>3)
+        $s=1;
       $list['Exam_Id']=$sl;
       $list['Exam_Name']=$test_code;
-      $list['Subject'][$subject]['Section'.$s][$i]= new \stdClass();
-      $list['Subject'][$subject]['Section'.$s][$i]->{'question_no'}=$key;
-      $list['Subject'][$subject]['Section'.$s][$i]->{'question_type'}=$value;
+      $list['Subject'][$subject.'_Section'.$s][$i]= new \stdClass();
+      $list['Subject'][$subject.'_Section'.$s][$i]->{'question_no'}=$key;
+      $list['Subject'][$subject.'_Section'.$s][$i]->{'question_type'}=$value;
       // $list[$i]->{'section'}='Section'.$s;
       // $list[$i]->{'subject_name'}=$subject;
-      $list['Subject'][$subject]['Section'.$s][$i]->{'correct_answer'}=$correct[$ans];
-       $list['Subject'][$subject]['Section'.$s][$i]->{'marked_answer'}=$marked['ansdata'][$ans];
+      $list['Subject'][$subject.'_Section'.$s][$i]->{'correct_answer'}=$correct[$ans];
+       $list['Subject'][$subject.'_Section'.$s][$i]->{'marked_answer'}=$marked['ansdata'][$ans];
        $list['Number_of_Subjects']=count($subject_name);
       $i++;
       $ans++;

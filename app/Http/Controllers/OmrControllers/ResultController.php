@@ -34,7 +34,14 @@ class ResultController extends Controller
         return $res;
     }
     public function examlist(Request $request){
+        if($request->user_type=='student'||$request->user_type=='parent')
+        {
         $res=Exam::examlist($request);
+        }
+        else{
+             $change="e";
+        $res=Subject::teacher_percentage($request,$change);
+            }
         return $res;
     }
     public function AnswerDetails(Request $request){
@@ -42,23 +49,27 @@ class ResultController extends Controller
         return $res;
     }
     public function exam_info(Request $request){
+        if($request->user_type=="student" || $request->user_type=="parent")
         $res=Modesyear::exam_info($request,0);
-        return $res;
-    }
-    public function teacher_exam_info(Request $request){
+        else
         $res=Type::teacher_exam_info($request);
+
         return $res;
     }
+    // public function teacher_exam_info(Request $request){
+    //     $res=Type::teacher_exam_info($request);
+    //     return $res;
+    // }
     // public function teacher_percentage(Request $request){
     //     $change="p";
     //     $res=Subject::teacher_percentage($request,$change);
     //     return $res;
     // }
-    public function teacher_examlist(Request $request){
-          $change="e";
-        $res=Subject::teacher_percentage($request,$change);
-        return $res;
-    }
+    // public function teacher_examlist(Request $request){
+    //       $change="e";
+    //     $res=Subject::teacher_percentage($request,$change);
+    //     return $res;
+    // }
     public function teacher_studentlist(Request $request){
           $change="s";
         $res=Subject::teacher_percentage($request,$change);
