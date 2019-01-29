@@ -27,12 +27,12 @@ class Type extends Model
     				->select($table[0].'.*')
     				->get();
     	if(count($result)==0){
-    		return [
-                        'Login' => [
-                            'response_message'=>"Student Record Not Found",
-                            'response_code'=>"0"
-                           ],
-                    ];
+	    		return [
+	                        'Login' => [
+	                            'response_message'=>"Student Record Not Found",
+	                            'response_code'=>"0"
+	                           ],
+	                    ];
     	}
     	if($exam[0]->omr_scanning_type=="advanced"){
 	$response_array=ias_model_year_paper($exam[0]->model_year,$exam[0]->paper);
@@ -247,10 +247,18 @@ class Type extends Model
 			$sect++;
 
 		}
+		if(is_array($cal['s']))
+		$su=array_values($cal['s']);
+		else
+			$su=$cal['s'];
 		return [
+			 'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
 			"Sectionwise_total"=>$at,
 			"Section_Count"=>$count,
-			"Subjects"=>array_values($cal['s']),
+			"Subjects"=>$su,
 			"Right"=>$aa,
 			"Wrong"=>$ab,
 			"Unattempted"=>$au,

@@ -59,9 +59,11 @@ class Subject extends Model
                     ->where('eg.CLASS_ID',$class_id)
                     ->where('eg.PROGRAM_ID',$program_id)
                     ->where('e.result_generated1_no0',1)
-                    ->where('em.CAMPUS_ID',Auth::user()->CAMPUS_ID)
+                    ->where('em.CAMPUS_ID','222')
                     ->whereRaw('FIND_IN_SET(?,tm.test_mode_subjects)', [$subject_id])
-                    ->select('eg.test_sl','tm.marks_upload_final_table_name','e.max_marks','e.model_year','e.paper','e.omr_scanning_type','tm.test_mode_name')->get();
+                    ->select('eg.test_sl','tm.marks_upload_final_table_name','e.max_marks','e.model_year','e.paper','e.omr_scanning_type','tm.test_mode_name','tc.CAMPUS_ID')->get();
+                    // return $output;
+                    //CAMPUS_ID=3,222
  // return \Request::segment(2);
                  if($change=="p"){
                   return static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id)['Result'];  
@@ -100,6 +102,11 @@ class Subject extends Model
                   }
                   // return $block_no;
                   return [
+
+                     'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
                     "Totalpage"=>((count($test)+1)/$block_no[0]),
                     "Block_Count"=>$block_no[0],
                     "Exam"=>$examlist,
@@ -152,6 +159,11 @@ class Subject extends Model
                     }}
                   }
                   return [
+
+                     'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
                     "Totalpage"=>ceil($totalpage),
                     "Block_Count"=>$block_no[0],
                     "Max_Marks"=>$studentlist1['max_marks'],
@@ -185,10 +197,17 @@ class Subject extends Model
             }
             else
             {
-              $filedata[0]=$correctans[0]->to_from_range;
+              $filedata[0]=$correctans[0]->subject_string_final;
+              foreach (explode(',',$filedata[0]) as $keyu => $valueu) 
+              {
+                $arr[]=DB::table('0_subjects')->where('subject_id',$valueu)->pluck('subject_name')[0];
+              }
             }
             if(is_array($filedata[0]))
             $a[]=array_values(array_filter($filedata[0]));
+            else
+            $a[]=(array)$arr;
+        // dd($a);
             $b[]=explode(",",$value->max_marks);
             $max[]=array_combine($a[$key],$b[$key]);
             $list=$max[$key][strtoupper($subject_name)];
@@ -200,6 +219,11 @@ class Subject extends Model
                 if(!isset($exam_id))
                
                  return [
+                  
+                     'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
                           "Result"=>$result,
                           "ExamList"=>$examlist,
                           "StudentList"=>"0"
@@ -223,16 +247,21 @@ class Subject extends Model
                  else
                      $result[$value->test_mode_name]=$addition/count($res);
             }     
-            $a=0;      
+            $a=0; 
+            $final=array();     
             foreach ($result as $key => $value) {
              $final[$a]['Mode_name']=$value; 
              $final[$a]['Percentage']=$key; 
              $a++;
             }
         return [
-          "Result"=>["data"=>$final],
+          "Result"=>['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
+            "data"=>$final],
           "ExamList"=>$examlist,
-          "StudentList"=>$studentlist
+          "StudentList"=>$studentlist,
         ];       
 
     }
@@ -243,7 +272,11 @@ class Subject extends Model
                     ->where('is.EMPLOYEE_ID',Auth::user()->payroll_id)
                     ->select('is.SECTION_ID','cs.section_name')
                     ->get();
-      return $result;
+      return ['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
+        'data'=>$result];
 
     }
     

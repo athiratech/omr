@@ -12,6 +12,8 @@ class Exam extends Model
   protected $primaryKey='sl';
   public $timestamps=false;
   public static function total($data){
+    // sleep(10);
+    $res_key=array();
     $mode=array();
     $calculation="";
     $marklist=array(); 
@@ -63,8 +65,18 @@ class Exam extends Model
         $res_key[$a][ "Percentage"] = number_format((float) $value, '2', '.', '');
         $a++;
         }
+        if(empty($res_key))
+          return [
+                        'Mode' =>['Login'=> [
+                            'response_message'=>"Student Record Not Found",
+                            'response_code'=>"0"
+                           ]],
+                    ];
     return [
-        "Mode"=>["data"=>$res_key],
+        "Mode"=>['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],"data"=>$res_key],
         "Marklist"=>$marklist,
         ];
     
@@ -105,7 +117,11 @@ class Exam extends Model
   }
   public static function test_type_list($data){
     $out=DB::table('0_test_types')->select('test_type_id','test_type_name')->get();
-    return $out;
+    return 
+                     ['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],"data"=>$out];
   }
   public static function AnswerDetails($data){
     $type="";
@@ -177,7 +193,11 @@ class Exam extends Model
       $i++;
       $ans++;
     }
-    return $list;
+    return 
+                     ['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],"data"=>$list];
   }
   public static function AdvanceAnswer($data,$ans,$marked){
     $sl=$ans[0]->sl;
@@ -222,7 +242,11 @@ class Exam extends Model
       $i++;
       $ans++;
       }
-      return $list;
+      return 
+                     ['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],"data"=>$list];
   }
   public static function AnswerObtain($data,$ans,$type)
   {

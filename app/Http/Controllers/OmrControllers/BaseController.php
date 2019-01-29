@@ -28,7 +28,14 @@ class BaseController extends Controller
         if(count($group)!=0)
         $query->whereIn('GROUP_ID',$group);
         $query=$query->get();
-        return new GroupCollection($query);
+        $data=new GroupCollection($query);
+        return [
+                  
+                     'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
+                            "data"=>$data];
 
     }
     public function class_year_wrt_group(Request $request, $id)
@@ -38,7 +45,15 @@ class BaseController extends Controller
         if(count($class)!=0)
             $query->whereIn('CLASS_ID',$class);
         $query=$query->get();
-        return new StudyClassCollection($query);      
+        $data=new StudyClassCollection($query);  
+         return [
+                  
+                     'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
+                            "data"=>$data];
+    
     
     }
     public function stream_wrt_group_class_year(Request $request)
@@ -55,7 +70,15 @@ class BaseController extends Controller
         if(count($stream)!=0)
             $query->whereIn('STREAM_ID',$stream);
         $query=$query->get();
-        return new StreamCollection($query);
+        $data=new StreamCollection($query);
+         return [
+                  
+                     'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
+                            "data"=>$data];
+
          
     }
 
@@ -71,7 +94,15 @@ class BaseController extends Controller
         if(count($program))
         $query->whereIn('PROGRAM_ID',$program);
         $query=$query->get();
-        return new ProgramCollection($query);
+        $data=new ProgramCollection($query); 
+        return [
+                  
+                     'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
+                            "data"=>$data];
+
 
 
     }

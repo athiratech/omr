@@ -44,6 +44,7 @@ class Modesyear extends Model
 	 $type="";
    $correctans=$exam;
    $correct=$correctans[0]['CorrectAnswer'];
+   $partial=$result[0]->Partial_String;
 	$all_sub_marks_array=static::get_marks_string($to_from_range,$mark_file_long_string,$correct);
 
       $cal=[
@@ -54,13 +55,11 @@ class Modesyear extends Model
        	"se"=>$section,
        ];
        $analysis=static::strongweak($cal,$result,$exam[0]->max_marks);
-       return static::markcount($cal,$analysis,$result);
+       return static::markcount($cal,$analysis,$result,,$partial);
     }
 
 	public static function get_marks_string($to_from_range,$mark_file_long_string,$correct) //CRB not required
-	{
-		//BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2
-
+	{	
 		$correct=explode(",",$correct);
 		foreach($correct as $key=>$value)
 		{
@@ -82,13 +81,12 @@ class Modesyear extends Model
 		  $this_mark=$mark_file_array[$mark];
 		    for($m=$one;$m<=$two;$m++)
 		    {	
-		    	if($otherarray[$m]=='X')
+		    	if($otherarray[$m]=='X'){
 		       $all_sub_marks_array[]=0;
-		   		// elseif($otherarray[$m]=='P')
-		   	 //   $all_sub_marks_array[]=$this_mark;
-		   		else
+		   		}
+		   		else{
 		       $all_sub_marks_array[]=$this_mark;
-
+		   		}
 		    }
 		$from=$from+4;
 		$to=$to+4;
@@ -96,7 +94,13 @@ class Modesyear extends Model
 		}
 		return $all_sub_marks_array;
 	}
-	public static function markcount($cal,$analysis,$result){
+	public static function markcount($cal,$analysis,$result,$partial){
+				$pa=0;
+
+		if($partial=="")
+		$partial="BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2";
+		$parr=explode(",", $partial);
+
 		$ar1=[
 			"aa",
 			"ab",
@@ -173,11 +177,17 @@ class Modesyear extends Model
 				else
 				$au[$subjects.'_'.$secti]=$cal['m'][$key];
 			}
-			elseif($value=="P"){	
-				if(isset($ap[$subjects][$secti]))
-				$ap[$subjects.'_'.$secti]+=$cal['m'][$key];
-				else
-				$ap[$subjects.'_'.$secti]=$cal['m'][$key];
+			elseif($value=="P"){	   	  
+		   		
+				if(isset($ap[$subjects][$secti])){
+				$ap[$subjects.'_'.$secti]+=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+		   	   $a++;
+				}
+				else{
+				$ap[$subjects.'_'.$secti]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+		   	   $a++;
+
+				}
 			}
 			elseif($value=="R"){
 				if(isset($aa[$subjects][$secti]))
@@ -206,7 +216,10 @@ class Modesyear extends Model
 				}
 			}
 		}
-		return [
+		return [ 'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
 			"Section_Count"=>$count,
 			"Subjects"=>array_values($cal['s']),
 			"Right"=>$aa,
