@@ -58,7 +58,8 @@ class Type extends Model
 			"Unattempted",
 			"Partial",
 			"Grace",
-			"Deleted"
+			"Deleted",
+			"Missed_Partial"
 			];
 			if(is_array($subject))
 		$ar2=array_values(array_filter($subject));
@@ -178,6 +179,17 @@ class Type extends Model
 		return $all_sub_marks_array;
 	}
 	public static function markcount($cal,$result,$inc){
+		$pa=0;
+		if(isset($result[0]->Partial_String))
+			if($result[0]->Partial_String=="")
+			$partial="BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2,BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2";				
+
+			else
+			$partial=$result[0]->Partial_String;
+		else
+			$partial="BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2,BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2";
+
+		$parr=explode(",", $partial);
 		$extra=array();
 		if(is_array($cal['s'])){
 		$cal['s']=array_filter($cal['s']);		
@@ -198,7 +210,7 @@ class Type extends Model
 				$ra=explode('-',$value);
 				$range[]=end($ra);
 			}
-				$ad=array();$ap=array();$au=array();$ag=array();$aa=array();$ab=array();	
+				$ad=array();$ap=array();$au=array();$ag=array();$aa=array();$ab=array();;$am=array();	
 				$subjects=$cal['s'][$a];
 				if(!empty($cal['se']))
 				$section=$cal['se'][$sect];
@@ -236,7 +248,25 @@ class Type extends Model
 				$au[$subjects][$secti][$key]=$cal['m'][$key];
 			}
 			elseif($value=="P"){	
-				$ap[$subjects][$secti][$key]=$cal['m'][$key];				
+				// $ap[$subjects][$secti][$key]=$cal['m'][$key];
+				$ap[$subjects][$secti][$key]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				$am[$subjects][$secti][$key]=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+
+
+				// if(isset($ap[$subjects][$secti][$key])){
+				// 	if(isset($parr[$pa])){
+				// $ap[$subjects][$secti][$key]+=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				// $am[$subjects][$secti][$key]+=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				// 	}
+		  //  	   $pa++;
+				// }
+				// else{
+				// 	if(isset($parr[$pa])){
+				// $ap[$subjects][$secti][$key]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				// $am[$subjects][$secti][$key]=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				// 	}
+		  //  	   $pa++;
+				// }				
 			}
 			elseif($value=="R"){
 				$aa[$subjects][$secti][$key]=$cal['m'][$key];		
@@ -265,6 +295,7 @@ class Type extends Model
 			"Partial"=>$ap,
 			"Grace"=>$ag,
 			"Deleted"=>$ad,
+			"Missed_Partial"=>$am,
 			"Subject_Total"=>$extra,
 			"Exam_Total_Mark"=>$t,
 		];
@@ -280,7 +311,8 @@ class Type extends Model
 			"Unattempted",
 			"Partial",
 			"Grace",
-			"Deleted"
+			"Deleted",
+			"Missed_Partial"			
 			];
 	   foreach ($ar1 as $key => $value) {
 

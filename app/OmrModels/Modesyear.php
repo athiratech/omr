@@ -14,6 +14,7 @@ class Modesyear extends Model
   
     public static function exam_info($data,$ch){
     	$exam=Exam::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl','test_code','mode','mark_file_long_string','max_marks')->get();
+    	// return $exam;
     	$table=Mode::where('test_mode_id',$exam[0]->mode)->pluck('marks_upload_final_table_name');
     	if($ch==1)
     	$result=DB::table($table[0])->where('STUD_ID',$data->STUD_ID)->where('test_code_sl_id',$data->exam_id)->get();
@@ -44,7 +45,10 @@ class Modesyear extends Model
 	 $type="";
    $correctans=$exam;
    $correct=$correctans[0]['CorrectAnswer'];
+if(isset($result[0]->Partial_String))
    $partial=$result[0]->Partial_String;
+else
+	$partial="";
 	$all_sub_marks_array=static::get_marks_string($to_from_range,$mark_file_long_string,$correct);
 
       $cal=[
@@ -55,7 +59,7 @@ class Modesyear extends Model
        	"se"=>$section,
        ];
        $analysis=static::strongweak($cal,$result,$exam[0]->max_marks);
-       return static::markcount($cal,$analysis,$result,,$partial);
+       return static::markcount($cal,$analysis,$result,$partial);
     }
 
 	public static function get_marks_string($to_from_range,$mark_file_long_string,$correct) //CRB not required
@@ -95,6 +99,7 @@ class Modesyear extends Model
 		return $all_sub_marks_array;
 	}
 	public static function markcount($cal,$analysis,$result,$partial){
+		// return $partial;
 				$pa=0;
 
 		if($partial=="")
@@ -108,6 +113,7 @@ class Modesyear extends Model
 			"ap",
 			"ag",
 			"ad",
+			"am",
 			];
 		$extra=array();
 		if(is_array($cal['s'])){
@@ -154,49 +160,54 @@ class Modesyear extends Model
 					}
 					if($secti=="Section4")
 						$secti="Section1";
+					// return $cal['s'];
+					// $a;
 				if($range[$b]==$key){
+					if(isset($cal['s'][$a]))
+					$subjects=$cal['s'][$a];
 					$b++;
 					$a++;
-					$subjects=$cal['s'][$a];
 				}
 			if($value=="X"){
-				if(isset($ad[$subjects][$secti]))
+				if(isset($ad[$subjects.'_'.$secti]))
 				$ad[$subjects.'_'.$secti]+=$cal['m'][$key];
 				else
 				$ad[$subjects.'_'.$secti]=$cal['m'][$key];
 			}
 			elseif($value=="G"){
-				if(isset($ag[$subjects][$secti]))
+				if(isset($ag[$subjects.'_'.$secti]))
 				$ag[$subjects.'_'.$secti]+=$cal['m'][$key];
 				else
 				$ag[$subjects.'_'.$secti]=$cal['m'][$key];
 			}
 			elseif($value=="U"){
-				if(isset($au[$subjects][$secti]))
+				if(isset($au[$subjects.'_'.$secti]))
 				$au[$subjects.'_'.$secti]+=$cal['m'][$key];
 				else
 				$au[$subjects.'_'.$secti]=$cal['m'][$key];
 			}
 			elseif($value=="P"){	   	  
 		   		
-				if(isset($ap[$subjects][$secti])){
+				if(isset($ap[$subjects.'_'.$secti])){
 				$ap[$subjects.'_'.$secti]+=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-		   	   $a++;
+				$am[$subjects.'_'.$secti]+=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+		   	   $pa++;
 				}
 				else{
 				$ap[$subjects.'_'.$secti]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-		   	   $a++;
+				$am[$subjects.'_'.$secti]=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+		   	   $pa++;
 
 				}
 			}
 			elseif($value=="R"){
-				if(isset($aa[$subjects][$secti]))
+				if(isset($aa[$subjects.'_'.$secti]))
 				$aa[$subjects.'_'.$secti]+=$cal['m'][$key];
 				else
 				$aa[$subjects.'_'.$secti]=$cal['m'][$key];
 			}
 			else{
-				if(isset($ab[$subjects][$secti]))
+				if(isset($ab[$subjects.'_'.$secti]))
 				$ab[$subjects.'_'.$secti]+=$cal['m'][$key];
 				else
 				$ab[$subjects.'_'.$secti]=$cal['m'][$key];
@@ -216,18 +227,20 @@ class Modesyear extends Model
 				}
 			}
 		}
+
 		return [ 'Login' => [
                             'response_message'=>"success",
                             'response_code'=>"1",
                             ],
 			"Section_Count"=>$count,
-			"Subjects"=>array_values($cal['s']),
+			"Subjects"=>$ar2,
 			"Right"=>$aa,
 			"Wrong"=>$ab,
 			"Unattempted"=>$au,
 			"Partial"=>$ap,
 			"Grace"=>$ag,
 			"Deleted"=>$ad,
+			"Missed_Partial"=>$am,
 			"Subject_Total"=>$extra,
 			"Exam_Total_Mark"=>$t,
 			"Analysis"=>$analysis,

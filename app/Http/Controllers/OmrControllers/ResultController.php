@@ -7,18 +7,20 @@ use App\OmrModels\Exam;
 use App\OmrModels\Type;
 use App\OmrModels\Modesyear;
 use App\OmrModels\Subject;
+use App\Http\Requests\LoginResult;
+use App\Http\Requests\Totalpercentage;
 use  File;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 class ResultController extends Controller
 {
-    public function login(Request $request)
+    public function login(LoginResult $request)
     {
     $res=Result::login($request);
       return $res;      
     }
-    public function total_percentage(Request $request){
+    public function total_percentage(Totalpercentage $request){
         if($request->user_type=='student' || $request->user_type=='parent' ){
         $res=Exam::type($request);
         }
