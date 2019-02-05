@@ -16,10 +16,10 @@ class User extends Authenticatable
    //  protected $hidden = [
    //      'password', 'remember_token',
    //  ];
-   //   public function roles()
-   //  {
-   //      return $this->belongsToMany('App\role');
-   //  }
+     public function getBodyAttributes($value)
+    {
+        return ucfirst($value);
+    }
 
    // public function tokens () {
    //      return $this->hasMany(Token::class, 'user_id', 'id');

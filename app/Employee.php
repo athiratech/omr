@@ -16,6 +16,10 @@ class Employee extends Authenticatable
     protected $hidden = [
         'password', 'remember_token',
     ];
+      public function getDESIGNATIONAttribute($value)
+    {
+        return ucfirst(strtolower($value));
+    }
      public function roles()
     {
         return $this->belongsToMany('App\role');

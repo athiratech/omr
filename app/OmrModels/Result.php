@@ -48,15 +48,15 @@ class Result extends Authenticatable
             if(Auth::id()){
                 $client = Employee::find(Auth::id());
                 $uc=$client->tokens()->where('created_at', '<', Carbon::now()->subDay())->delete();
-                $campus=DB::table('t_campus')->where('CAMPUS_ID',Auth::user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
+                $campus=Campus::where('CAMPUS_ID',Auth::user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
                 $details=[
-                    'USER_NAME'=>ucfirst(strtolower(Auth::user()->USER_NAME)),
-                    'CAMPUS_NAME'=>ucfirst(strtolower($campus[0])),
-                    'SURNAME'=>ucfirst(strtolower(Auth::user()->SURNAME)),
-                    'NAME'=>ucfirst(strtolower(Auth::user()->NAME)),
+                    'USER_NAME'=>Auth::user()->USER_NAME,
+                    'CAMPUS_NAME'=>$campus[0],
+                    'SURNAME'=>Auth::user()->SURNAME,
+                    'NAME'=>Auth::user()->NAME,
                     'USER'=>'EMPLOYEE',
-                    'DEPARTMENT'=>ucfirst(strtolower(Auth::user()->SUBJECT)),
-                    'DESIGNATION'=>ucfirst(strtolower(Auth::user()->DESIGNATION)),
+                    'DEPARTMENT'=>Auth::user()->SUBJECT,
+                    'DESIGNATION'=>Auth::user()->DESIGNATION,
                     'CAMPUS_ID'=>Auth::user()->CAMPUS_ID
                           ];
             $role=DB::table('roles')
@@ -96,7 +96,7 @@ class Result extends Authenticatable
             }
         }
                   elseif(Auth::guard('t_student')->id()){
-           $campus=DB::table('t_campus')->where('CAMPUS_ID',Auth::guard('t_student')->user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
+           $campus=Campus::where('CAMPUS_ID',Auth::guard('t_student')->user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
                 $details=[
                     'NAME'=>ucfirst(strtolower(Auth::guard('t_student')->user()->NAME)),
                     'USER_NAME'=>ucfirst(strtolower(Auth::guard('t_student')->user()->USER_NAME)),
@@ -139,7 +139,7 @@ class Result extends Authenticatable
            }
            else{
             $student=DB::select('SELECT * FROM `t_parent_details` WHERE ADM_NO Like "%'.Auth::guard('tparent')->id().'" LIMIT 1');
-            $campus=DB::table('t_campus')->where('CAMPUS_ID',Auth::guard('tparent')->user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
+            $campus=Campus::where('CAMPUS_ID',Auth::guard('tparent')->user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
             // return Auth::guard('tparent')->user();
             if(count($student)==0)
                return [

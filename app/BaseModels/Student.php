@@ -17,6 +17,11 @@ class Student extends Authenticatable
     protected $table = 't_student';
     protected $primaryKey = 'ADM_NO';
     private static $test_types=[];
+      public function getBodyAttributes($value)
+    {
+        return ucfirst(strtolower($value));
+    }
+
      public function roles()
     {
         return $this->belongsToMany('App\OmrModels\role');

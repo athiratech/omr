@@ -9,7 +9,16 @@ class Campus extends Model
     //
         protected $table = 't_campus';
     	protected $primaryKey = 'CAMPUS_ID';
+        public function getCAMPUSNAMEAttribute($value)
+        {
+            return ucfirst(strtolower($value));
+        }
+    //       public function getDESIGNATIONAttribute($value)
+    // {
+    //     return ucfirst(strtolower($value));
+    // }
     	 public function campusupload($Exam_Id,$Campus_Id,$files){
+        
         if(!$Exam_Id){
             return [
                 'Login' => [
