@@ -150,7 +150,7 @@ class Result extends Authenticatable
                     'STUDENT'=>ucfirst(strtolower(Auth::guard('tparent')->user()->NAME)),
                     'CAMPUS_ID'=>Auth::guard('tparent')->user()->CAMPUS_ID,
                     'YEAR'=>Auth::guard('tparent')->user()->CLASS_ID
-                          ];
+                          ]; 
                 $uc=Token::whereUser_id(Auth::guard('tparent')->id())->delete();
 
                    $token=Token::whereUser_id(Auth::guard('tparent')->id())->pluck('access_token');
