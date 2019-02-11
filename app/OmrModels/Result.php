@@ -11,6 +11,8 @@ use Carbon\Carbon;
 use App\Employee;
 use App\OmrModels\Parent_details;
 use App\BaseModels\Student;
+use App\BaseModels\Program;
+use App\BaseModels\StudyClass;
 use App\BaseModels\Campus;
 use App\OmrModels\Tparent;
 use App\Token;
@@ -46,32 +48,30 @@ class Result extends Authenticatable
       if(Auth::id() || Auth::guard('t_student')->id()|| Auth::guard('tparent')->id()){
          $c=array();
             if(Auth::id()){
-                $client = Employee::find(Auth::id());
-                $uc=$client->tokens()->where('created_at', '<', Carbon::now()->subDay())->delete();
-                $campus=Campus::where('CAMPUS_ID',Auth::user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
+                $client = Employee::
+                                join('t_campus as tc','employees.CAMPUS_ID','=','tc.CAMPUS_ID')
+                                ->join('t_employee as te','te.PAYROLL_ID','=','employees.payroll_id')
+                              ->find(Auth::id());
+                $uc=$client->tokens()->delete();
+                $campus=$client->CAMPUS_NAME;
                 $details=[
-                    'USER_NAME'=>Auth::user()->USER_NAME,
-                    'CAMPUS_NAME'=>$campus[0],
-                    'SURNAME'=>Auth::user()->SURNAME,
-                    'NAME'=>Auth::user()->NAME,
+                    'USER_NAME'=>ucfirst(strtolower($client->USER_NAME)),
+                    'CAMPUS_NAME'=>ucfirst(strtolower($campus)),
+                    'SURNAME'=>ucfirst(strtolower($client->SURNAME)),
+                    'NAME'=>ucfirst(strtolower($client->NAME)),
                     'USER'=>'EMPLOYEE',
                     'DEPARTMENT'=>Auth::user()->SUBJECT,
                     'DESIGNATION'=>Auth::user()->DESIGNATION,
                     'CAMPUS_ID'=>Auth::user()->CAMPUS_ID
                           ];
-            $role=DB::table('roles')
-                  ->join('user_roles','roles.roll_id','=','user_roles.ROLL_ID')
-                  ->join('t_employee','t_employee.payroll_id','=','user_roles.payroll_id')
-                  ->where('t_employee.EMPLOYEE_ID','=',Auth::id())
-                  ->select('roles.role')
-                  ->get();
-                     
-            foreach ($role as $key => $value) {
-               $c[]=$value->role;
-            }
             
             $token=Token::whereUser_id(Auth::id())->pluck('access_token');
-            $subject=DB::table('IP_Exam_Section as a')->join('0_subjects as b','a.SUBJECT_ID','b.SUBJECT_ID')->where('a.EMPLOYEE_ID',Auth::user()->payroll_id)->select('b.subject_id','b.subject_name','a.SECTION_ID')->get();
+            $subject=DB::table('IP_Exam_Section as a')
+                      ->join('0_subjects as b','a.SUBJECT_ID','b.SUBJECT_ID')
+                      ->where('a.EMPLOYEE_ID',Auth::user()->payroll_id)
+                      ->select('b.subject_id','b.subject_name')
+                      ->distinct()
+                      ->get();
            if($uc){
              $msg='Token expired and New Token generated';
            }
@@ -87,7 +87,6 @@ class Result extends Authenticatable
                             'response_message'=>"success",
                             'response_code'=>"1",
                             'Token'=>$token->access_token,
-                            // 'Role'=>$c,
                             ],
                             'Details'=>$details,
                             'Subject'=>$subject,
@@ -104,18 +103,15 @@ class Result extends Authenticatable
                     'USER'=>'STUDENT',
                     'CAMPUS_NAME'=>ucfirst(strtolower($campus[0])),
                     'GROUP'=>Auth::guard('t_student')->user()->GROUP_NAME,
-                    'SUBJECT'=>Auth::guard('t_student')->user()->SUBJECT,
+                    // 'SUBJECT'=>Auth::guard('t_student')->user()->SUBJECT,
+                    'PROGRAM_NAME'=>Program::where('PROGRAM_ID',Auth::guard('t_student')->user()->PROGRAM_ID)->pluck('PROGRAM_NAME')[0],
+                    'CLASS_NAME'=>StudyClass::where('CLASS_ID',Auth::guard('t_student')->user()->CLASS_ID)->pluck('CLASS_NAME')[0],
                     'CAMPUS_ID'=>Auth::guard('t_student')->user()->CAMPUS_ID,
                     'ACADEMIC_YEAR'=>Auth::guard('t_student')->user()->ACADEMIC_YEAR,
                     'YEAR'=>Auth::guard('t_student')->user()->CLASS_ID
                           ];
-                       $role=DB::table('roles')
-                  
-                  ->join('user_roles','roles.roll_id','=','user_roles.ROLL_ID')
-                  ->join('employees','employees.payroll_id','=','user_roles.payroll_id')
-                  ->where('employees.id','=',Auth::guard('t_student')->id())
-                  ->select('roles.role')
-                  ->get();
+                $uc=Token::whereUser_id(Auth::guard('t_student')->id())->delete();
+
                    $token=Token::whereUser_id(Auth::guard('t_student')->id())->pluck('access_token');
          
             if (!$token->count()) {
@@ -140,7 +136,6 @@ class Result extends Authenticatable
            else{
             $student=DB::select('SELECT * FROM `t_parent_details` WHERE ADM_NO Like "%'.Auth::guard('tparent')->id().'" LIMIT 1');
             $campus=Campus::where('CAMPUS_ID',Auth::guard('tparent')->user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
-            // return Auth::guard('tparent')->user();
             if(count($student)==0)
                return [
                         'Login' => [
@@ -156,6 +151,8 @@ class Result extends Authenticatable
                     'CAMPUS_ID'=>Auth::guard('tparent')->user()->CAMPUS_ID,
                     'YEAR'=>Auth::guard('tparent')->user()->CLASS_ID
                           ];
+                $uc=Token::whereUser_id(Auth::guard('tparent')->id())->delete();
+
                    $token=Token::whereUser_id(Auth::guard('tparent')->id())->pluck('access_token');
                
             if (!$token->count()) {
@@ -178,13 +175,17 @@ class Result extends Authenticatable
             }
            }
            if(Auth::id()){
-            $subject=DB::table('IP_Exam_Section as a')->join('0_subjects as b','a.SUBJECT_ID','b.SUBJECT_ID')->where('a.EMPLOYEE_ID',Auth::user()->payroll_id)->select('b.subject_id','b.subject_name','a.SECTION_ID')->get();  
+            $subject=DB::table('IP_Exam_Section as a')
+                      ->join('0_subjects as b','a.SUBJECT_ID','b.SUBJECT_ID')
+                      ->where('a.EMPLOYEE_ID',Auth::user()->payroll_id)
+                      ->select('b.subject_id','b.subject_name')
+                      ->distinct()                      
+                      ->get();  
                     return [
                         'Login' => [
                             'response_message'=>"success",
                             'response_code'=>"1",
                         'Token'=>$token[0],
-                        // 'Role'=>$c,
                             ],
                         'Details'=>$details,
                         'Subject'=>$subject,

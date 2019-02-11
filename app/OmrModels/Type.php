@@ -22,7 +22,6 @@ class Type extends Model
     	$result=DB::table($table[0])
     				->join('t_student as st','st.ADM_NO','=',$table[0].'.STUD_ID')
     				->where('test_code_sl_id',$data->exam_id)
-    				->where('this_college_id',Auth::user()->CAMPUS_ID)
     				->wherein('st.SECTION_ID',$section)
     				->select($table[0].'.*')
     				->get();
@@ -52,6 +51,7 @@ class Type extends Model
    $correctans=$exam;
    $correct=$correctans[0]['CorrectAnswer'];
 	$all_sub_marks_array=static::get_marks_string($to_from_range,$mark_file_long_string,$correct);
+	// return $mark_file_long_string;
 	   $ar1=[
 			"Right",
 			"Wrong",
@@ -80,6 +80,7 @@ class Type extends Model
 	       ];
 	       $markcount[]=static::markcount($cal,$result,$key);
 	   }
+	   // return $markcount;
 	   $exact_ans=array();
 	   if($ar3==0)
 	   $ar3=1;
@@ -210,7 +211,7 @@ class Type extends Model
 				$ra=explode('-',$value);
 				$range[]=end($ra);
 			}
-				$ad=array();$ap=array();$au=array();$ag=array();$aa=array();$ab=array();;$am=array();	
+				$ad=array();$ap=array();$au=array();$ag=array();$aa=array();$ab=array();$am=array();	
 				$subjects=$cal['s'][$a];
 				if(!empty($cal['se']))
 				$section=$cal['se'][$sect];
@@ -248,25 +249,8 @@ class Type extends Model
 				$au[$subjects][$secti][$key]=$cal['m'][$key];
 			}
 			elseif($value=="P"){	
-				// $ap[$subjects][$secti][$key]=$cal['m'][$key];
 				$ap[$subjects][$secti][$key]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-				$am[$subjects][$secti][$key]=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-
-
-				// if(isset($ap[$subjects][$secti][$key])){
-				// 	if(isset($parr[$pa])){
-				// $ap[$subjects][$secti][$key]+=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-				// $am[$subjects][$secti][$key]+=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-				// 	}
-		  //  	   $pa++;
-				// }
-				// else{
-				// 	if(isset($parr[$pa])){
-				// $ap[$subjects][$secti][$key]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-				// $am[$subjects][$secti][$key]=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-				// 	}
-		  //  	   $pa++;
-				// }				
+				$am[$subjects][$secti][$key]=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));	
 			}
 			elseif($value=="R"){
 				$aa[$subjects][$secti][$key]=$cal['m'][$key];		
@@ -282,10 +266,6 @@ class Type extends Model
 		else
 			$su=$cal['s'];
 		return [
-			 'Login' => [
-                            'response_message'=>"success",
-                            'response_code'=>"1",
-                            ],
 			"Sectionwise_total"=>$at,
 			"Section_Count"=>$count,
 			"Subjects"=>$su,
@@ -318,7 +298,8 @@ class Type extends Model
 
 	   	foreach ($cal['s'] as $key2 => $value2) {
 	   		for ($i=1; $i <=$ans['Section_Count']; $i++) {
-	   			$ans[$ar1[$key]][$ar2[$key2].'_Section'.$i]=($ans[$ar1[$key]][$ar2[$key2]]['Section'.$i]/$ans['Sectionwise_total'][$ar2[$key2]]['Section'.$i])*100; 
+	   			$ans[$ar1[$key]][$ar2[$key2].'_Section'.$i]=number_format((float) ($ans[$ar1[$key]][$ar2[$key2]]['Section'.$i]/$ans['Sectionwise_total'][$ar2[$key2]]['Section'.$i])*100, '2', '.', ''); 
+
 	   	   		}	
 	   			
 	   		} 
@@ -351,59 +332,11 @@ class Type extends Model
 				$weak.=$value.',';
 			$a++;
 		}
-		/*.......................Section Wise List............................*/
-		// foreach ($ar as $key => $value) 
-		// {			
-		// 	foreach ($cal['s'] as $key1 => $value1) 
-		// 	{
-		// 		for ($i=1; $i <=$section ; $i++) { 
-		// 		if(isset($total['Obtained'][$value1]['Section'.$i]))
-		// 	$total['Obtained'][$value1]['Section'.$i]+=$ans[$value][$value1]['Section'.$i];
-		// 		else
-		// 	$total['Obtained'][$value1]['Section'.$i]=$ans[$value][$value1]['Section'.$i];
-						
-		// 		}
-				
-		// 	}
-		// }
-		// if(!empty($se))
-		// foreach ($cal['s'] as $key => $value) {
-		// 	for ($i=1; $i<=$section ; $i++) { 
-		// 		$per[$value]['Section'.$i]=($total['Obtained'][$value]['Section'.$i]/	$ans['Sectionwise_total'][$value]['Section'.$i])*100;
-		// 		if($per[$value]['Section'.$i]>=75)
-		// 		{
-		// 			if(isset($sectionstrong[$value]))
-		// 			$sectionstrong[$value].=','.$se[$i-1];
-		// 			else
-		// 			$sectionstrong[$value]=','.$se[$i-1];
-
-		// 		}
-		// 		elseif($per[$value]['Section'.$i]<=60)
-		// 		{
-		// 			if(isset($sectionweak[$value]))
-		// 			$sectionweak[$value].=','.$se[$i-1];
-		// 			else
-		// 			$sectionweak[$value]=','.$se[$i-1];
-
-		// 		}
-		// 	}
-		// }
 		unset($ans['Sectionwise_total']);
 		unset($ans['Section_Count']);
 		unset($ans['Subjects']);
 		unset($ans['Subject_Total']);
 		unset($ans['Exam_Total_Mark']);
-		// foreach ($cal['s'] as $key => $value) 
-		// {
-		// 	if(isset($sectionweak[$value])){
-		// 	$sectionweak1['subjects'][]=$value;
-		// 	$sectionweak1['type'][]=$sectionweak[$value];
-		// 	}
-		// 	if(isset($sectionstrong[$value]))	{		
-		// 	$sectionstrong1['subjects'][]=$value;
-		// 	$sectionstrong1['type'][]=$sectionstrong[$value];
-		// 	}
-		// }
 
 	   foreach ($ar1 as $key => $value) 
 	   {
@@ -416,9 +349,7 @@ class Type extends Model
 		return [
 			"Answer_details"=>$ans,
 			"weak_subject"=>$weak,
-			// "weak_section"=>$sectionweak1,
 			"strong_subject"=>$strong,
-			// "strong_section"=>$sectionstrong1,
 				];
 	}
 }

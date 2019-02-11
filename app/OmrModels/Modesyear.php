@@ -32,7 +32,7 @@ class Modesyear extends Model
 	$response_array=ias_model_year_paper($exam[0]->model_year,$exam[0]->paper);
 		}
 		else{
-	$sub=DB::table('0_subjects')->wherein('subject_id',explode(',',$exam[0]->subject_string_final))->pluck('subject_name');
+	$sub=DB::table('0_subjects')->whereIn('subject_id',explode(',',$exam[0]->subject_string_final))->pluck('subject_name');
 	$response_array[0]=$sub;
 	$response_array[1]=array();
 	$response_array[6]=$exam[0]->to_from_range;
@@ -228,10 +228,7 @@ else
 			}
 		}
 
-		return [ 'Login' => [
-                            'response_message'=>"success",
-                            'response_code'=>"1",
-                            ],
+		return [
 			"Section_Count"=>$count,
 			"Subjects"=>$ar2,
 			"Right"=>$aa,

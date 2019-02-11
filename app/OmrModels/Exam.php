@@ -43,32 +43,47 @@ class Exam extends Model
                   ->get();
       //Fetch record from that table name
       $exam_data=DB::table($subject_marks[0]->marks_upload_final_table_name)
+      ->join('1_exam_admin_create_exam as e','e.sl','=',$subject_marks[0]->marks_upload_final_table_name.'.test_code_sl_id')
             ->whereRaw('STUD_ID ="'.Auth::id().'"')
             ->whereRaw('test_code_sl_id ="'.$value->sl.'"')
-            ->select('test_code_sl_id','STUD_ID','TOTAL','STREAM_RANK','PROGRAM_RANK','SEC_RANK','CAMP_RANK','CITY_RANK','DISTRICT_RANK','STATE_RANK','ALL_INDIA_RANK')
+            ->select('test_code_sl_id','STUD_ID','TOTAL','PROGRAM_RANK','STREAM_RANK','SEC_RANK','CAMP_RANK','CITY_RANK','DISTRICT_RANK','STATE_RANK','ALL_INDIA_RANK','e.start_date','e.test_code','e.max_marks')
             ->get();
+            foreach ($exam_data as $keya => $valuea) {
+              $exam_data[$keya]->DISTOTAL=(int)$valuea->TOTAL."/".array_sum(explode(',',$valuea->max_marks));
+            }
       //Add max marks and test_mode_name for calculation
         if(isset($exam_data[0])){
-          $marklist[]=$exam_data;
+
+          $marklist[$key]=$exam_data[0];
       $calculation=static::overallmarklist1(array_sum(explode(',',$value->max_marks)),$exam_data[0]->TOTAL); 
         if(array_key_exists($subject_marks[0]->test_mode_name, $mode)){
           $sum=$mode[$subject_marks[0]->test_mode_name]+$calculation;
           $mode[$subject_marks[0]->test_mode_name]=$sum/2;
+          $modeid['test_mode_id'][$subject_marks[0]->test_mode_name]=$subject_marks[0]->test_mode_id;
         }
         else{
-        $mode[$subject_marks[0]->test_mode_name]=$calculation;  
+        $mode[$subject_marks[0]->test_mode_name]=$calculation;
+        $modeid['test_mode_id'][$subject_marks[0]->test_mode_name]=$subject_marks[0]->test_mode_id;
+
         }       
       } 
-    }$a=0;
+    }
+
+    $a=0;
     foreach($mode as $key=>$value){
         $res_key[$a]["Mode_name"] = $key;
         $res_key[$a][ "Percentage"] = number_format((float) $value, '2', '.', '');
+        $res_key[$a][ "Mode_id"] = $modeid['test_mode_id'][$key];
         $a++;
         }
         if(empty($res_key))
           return [
                         'Mode' =>['Login'=> [
                             'response_message'=>"Student Record Not Found",
+                            'response_code'=>"0"
+                           ]],
+                             'Marklist' =>['Login'=> [
+                            'response_message'=>"Exam List Not Found",
                             'response_code'=>"0"
                            ]],
                     ];

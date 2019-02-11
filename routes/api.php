@@ -37,7 +37,8 @@ Route::get('testapi',function(){
 		Route::post('teacher_studentlist','OmrControllers\ResultController@teacher_studentlist');
 		Route::post('sectionlist','OmrControllers\ResultController@sectionlist');
 		/*OMR*/
-		Route::get('groups','OmrControllers\BaseController@groups');
+		Route::get('groups/{subject_id}','OmrControllers\BaseController@groups');
+		// Route::get('filter','OmrControllers\BaseController@groups');
 		Route::get('class_years/{group_id}','OmrControllers\BaseController@class_year_wrt_group');
 		Route::get('streams/{group_id}/{class_id}','OmrControllers\BaseController@stream_wrt_group_class_year');
 		Route::get('programs/{stream_id}/{class_id}','OmrControllers\BaseController@programs_wrt_stream_class_year');

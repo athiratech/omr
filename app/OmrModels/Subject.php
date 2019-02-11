@@ -29,7 +29,7 @@ class Subject extends Model
         $test_type=$data->test_type;
         $mode=$data->mode;
 
-        $subject_name=DB::table('0_subjects')->where('subject_id',$subject_id)->get()[0]->subject_name;
+        $subject_name=DB::table('0_subjects')->where('subject_id',$subject_id)->pluck('subject_name')[0];
 
         $section=DB::table('IP_Exam_Section')
                 ->where('EMPLOYEE_ID',Auth::user()->payroll_id)
@@ -50,7 +50,7 @@ class Subject extends Model
                     ->where('em.CAMPUS_ID',Auth::user()->CAMPUS_ID)
                     ->whereRaw('FIND_IN_SET(?,tm.test_mode_subjects)', [$subject_id])
                     ->where('eg.test_sl',$exam_id)
-                    ->select('eg.test_sl','tm.marks_upload_final_table_name','e.max_marks','e.model_year','e.paper','e.omr_scanning_type','tm.test_mode_name')->get();
+                    ->select('eg.test_sl','tm.marks_upload_final_table_name','e.max_marks','e.model_year','e.paper','e.omr_scanning_type','tm.test_mode_name','tm.test_mode_id')->get();
           else
         $output=DB::table('1_exam_gcsp_id as eg')
                     ->join('1_exam_admin_create_exam as e','e.sl','=','eg.test_sl')
@@ -63,11 +63,8 @@ class Subject extends Model
                     ->where('eg.PROGRAM_ID',$program_id)
                     ->where('e.result_generated1_no0',1)
                     ->where('em.CAMPUS_ID',Auth::user()->CAMPUS_ID)
-                    // ->where('em.CAMPUS_ID','222')
                     ->whereRaw('FIND_IN_SET(?,tm.test_mode_subjects)', [$subject_id])
-                    ->select('eg.test_sl','tm.marks_upload_final_table_name','e.max_marks','e.model_year','e.paper','e.omr_scanning_type','tm.test_mode_name','tc.CAMPUS_ID')->get();
-                    // return $output;
-                    //CAMPUS_ID=3,222
+                    ->select('eg.test_sl','tm.marks_upload_final_table_name','e.max_marks','e.model_year','e.paper','e.omr_scanning_type','tm.test_mode_name','tm.test_mode_id','tc.CAMPUS_ID')->get();
  // return \Request::segment(2);
                  if($change=="p"){
                   if(isset($data->exam_id))
@@ -78,14 +75,15 @@ class Subject extends Model
                  elseif($change=="e"){
                   $test=array();
                   $block_no=array();
-                  $exam=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode)['ExamList'];   
-                        $block_no=DB::table('Result_Application_BlockCount')->where('API','teacher_examlist')->pluck('Block_Count');
+                  $exam=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode)['ExamList'];  
+
+                        $block_no=DB::table('Result_Application_BlockCount')->where('API','examlist')->pluck('Block_Count');
                   $page=$data->page;
                   $max=$block_no[0]*$page;
                   $min=$max-$block_no[0];
-                  // foreach ($exam as $key => $value) 
                   for ($key=$min; $key <$max; $key++) 
                   {
+                    if(isset($exam[$key])){
                     $value=$exam[$key];
                     if(isset($examlist['test_code']))
                     {                  
@@ -109,32 +107,31 @@ class Subject extends Model
                     else{
                          if($mode==$value->test_mode_id && $test_type==$value->test_type_id)
                           {
-                      $examlist[$key]['test_code']=$value->test_code;
-                      $data1=new \stdClass(); 
-                      $data1->exam_id=$value->sl;
-                      $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
-                      $examlist[$key]['test_sl']=$value->sl;
-                      $examlist[$key]['start_date']=$value->start_date;
-                      $examlist[$key]['test_type_name']=$value->test_type_name;
-                      $examlist[$key]['test_mode_name']=$value->test_mode_name;
+                            $examlist[$key]['test_code']=$value->test_code;
+                            $data1=new \stdClass(); 
+                            $data1->exam_id=$value->sl;
+                            $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
+                            $examlist[$key]['test_sl']=$value->sl;
+                            $examlist[$key]['start_date']=$value->start_date;
+                            $examlist[$key]['test_type_name']=$value->test_type_name;
+                            $examlist[$key]['test_mode_name']=$value->test_mode_name;
                           }
                         }
+                      }
                   }
-                  // return $block_no;
                   return [
 
                      'Login' => [
                             'response_message'=>"success",
                             'response_code'=>"1",
                             ],
-                    "Totalpage"=>((count($exam))/($block_no[0]+1)),
+                    "Totalpage"=>ceil((count($exam))/($block_no[0]+1)),
                     "Block_Count"=>$block_no[0],
                     "Exam"=>$examlist,
                         ];
                   }               
                    elseif($change=="s"){ 
                   $student=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode)['StudentList'];
-                  // return count($student);
                   if($student==0)
                      return [
                         'Login' => [
@@ -146,6 +143,13 @@ class Subject extends Model
                      return [
                         'Login' => [
                             'response_message'=>"Student Record Not found for this Exam_Id",
+                            'response_code'=>"0"
+                           ],
+                    ];
+                    if(!isset($student[0]))
+                       return [
+                        'Login' => [
+                            'response_message'=>"Student Record Not found for this Subject_id",
                             'response_code'=>"0"
                            ],
                     ];
@@ -205,7 +209,6 @@ class Subject extends Model
     }
     public static function examstudent($output,$subject_name,$section,$exam_id,$section_id,$test_type,$mode)
     {
-      // return $subject_name;
         $examlist=array();
         $studentlist=array();
             $result=array();
@@ -218,8 +221,6 @@ class Subject extends Model
                         ;
             if($test_type!="")
             $correctans->where('ty.test_type_id',$test_type);
-            // if($mode!="")
-            // $correctans->where('tm.test_mode_id','5');
 
                $correctans=$correctans->get();
                
@@ -259,26 +260,21 @@ class Subject extends Model
             $list=$max[$subject_name];
 
             }
-            // $a[]=$arr;
-        // dd($a);
-                 // return [
-
-                 //     'Login' => [
-                 //            'response_message'=>"success",
-                 //            'response_code'=>"1",
-                 //            ],
-                 //          "Result"=>$max,
-                 //          "ExamList"=>$examlist,
-                 //          "StudentList"=>"0"
-                 //        ];  
-            // $max[]=array_combine((array)$a[$key],$b[$key]);
-                // if(!isset($exam_id))
-               
             $list1=strtoupper($subject_name);
 
             foreach ($section as $value1) {
              $section1[] = $value1;
                 }
+                if(empty($section1))
+                  return ['Result'=>['Login' => [
+                            'response_message'=>"No record found for this information",
+                            'response_code'=>"0",
+                            ]],'ExamList'=>$examlist
+                            ,'StudentList'=>['Login' => [
+                            'response_message'=>"No record found for this information",
+                            'response_code'=>"0",
+                            ]],
+                          ];
               if($exam_id !="0")
             $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,STATE_RANK,DISTRICT_RANK,CITY_RANK,CAMP_RANK,SEC_RANK,STREAM_RANK,st.NAME,st.SURNAME from ".$table."  as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$exam_id."' and `st`.`SECTION_ID`='".$section_id."'"); 
           else
@@ -295,17 +291,19 @@ class Subject extends Model
             if(count($res))
                 if(isset($result[$value->test_mode_name])){
                      $result[$value->test_mode_name]=($result[$value->test_mode_name]+($addition/count($res)))/2;
+                     $results[$value->test_mode_name]=$value->test_mode_id;
                    }
                  else{
                      $result[$value->test_mode_name]=$addition/count($res);
-             
+                     $results[$value->test_mode_name]=$value->test_mode_id;
                    }
             }     
             $a=0; 
             $final=array();     
             foreach ($result as $keyl => $valuel) {
              $final[$a]['Mode_name']=$keyl; 
-             $final[$a]['Percentage']=$valuel; 
+             $final[$a]['Mode_id']=$results[$keyl]; 
+             $final[$a]['Percentage']=number_format((float) $valuel, '2', '.', ''); 
              $a++;
             }
         return [
