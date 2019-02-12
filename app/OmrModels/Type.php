@@ -266,6 +266,10 @@ class Type extends Model
 		else
 			$su=$cal['s'];
 		return [
+			'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
 			"Sectionwise_total"=>$at,
 			"Section_Count"=>$count,
 			"Subjects"=>$su,

@@ -25,8 +25,8 @@ class Exam extends Model
           ->select('mode','rank_generated_type','max_marks','sl','test_code','model_year','paper','omr_scanning_type','subject_string_final')
           ;
           //Validate test_type_id is set otherwise set as 1
-    if(isset($data->test_type_id))
-      $exam->where('test_type',$data->test_type_id);
+    if(isset($data->test_type))
+      $exam->where('test_type',$data->test_type);
     else
       $exam->where('test_type','1');
 
@@ -46,7 +46,7 @@ class Exam extends Model
       ->join('1_exam_admin_create_exam as e','e.sl','=',$subject_marks[0]->marks_upload_final_table_name.'.test_code_sl_id')
             ->whereRaw('STUD_ID ="'.Auth::id().'"')
             ->whereRaw('test_code_sl_id ="'.$value->sl.'"')
-            ->select('test_code_sl_id','STUD_ID','TOTAL','PROGRAM_RANK','STREAM_RANK','SEC_RANK','CAMP_RANK','CITY_RANK','DISTRICT_RANK','STATE_RANK','ALL_INDIA_RANK','e.start_date','e.test_code','e.max_marks')
+            ->select('test_code_sl_id','STUD_ID','TOTAL','PROGRAM_RANK','STREAM_RANK','SEC_RANK','CAMP_RANK','CITY_RANK','DISTRICT_RANK','STATE_RANK','ALL_INDIA_RANK',DB::raw("DATE_FORMAT(e.start_date,'%d-%m-%Y') as start_date"),'e.test_code','e.max_marks')
             ->get();
             foreach ($exam_data as $keya => $valuea) {
               $exam_data[$keya]->DISTOTAL=(int)$valuea->TOTAL."/".array_sum(explode(',',$valuea->max_marks));
@@ -54,7 +54,7 @@ class Exam extends Model
       //Add max marks and test_mode_name for calculation
         if(isset($exam_data[0])){
 
-          $marklist[$key]=$exam_data[0];
+          $marklist[]=$exam_data[0];
       $calculation=static::overallmarklist1(array_sum(explode(',',$value->max_marks)),$exam_data[0]->TOTAL); 
         if(array_key_exists($subject_marks[0]->test_mode_name, $mode)){
           $sum=$mode[$subject_marks[0]->test_mode_name]+$calculation;
@@ -80,19 +80,22 @@ class Exam extends Model
           return [
                         'Mode' =>['Login'=> [
                             'response_message'=>"Student Record Not Found",
-                            'response_code'=>"0"
-                           ]],
+                            'response_code'=>"1"
+                           ],"data"=>array()],
                              'Marklist' =>['Login'=> [
                             'response_message'=>"Exam List Not Found",
-                            'response_code'=>"0"
-                           ]],
+                            'response_code'=>"1"
+                           ],"data"=>array()],
                     ];
     return [
         "Mode"=>['Login' => [
                             'response_message'=>"success",
                             'response_code'=>"1",
                             ],"data"=>$res_key],
-        "Marklist"=>$marklist,
+        "Marklist"=>['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],"data"=>$marklist],
         ];
     
   }
@@ -118,7 +121,7 @@ class Exam extends Model
   }
   //Caluculate overall mark with sum ofmax_mark 
   public static function overallmarklist1($max_marks,$total){
-
+      if($max_marks)
       return ($total/$max_marks)*100;
 
   }

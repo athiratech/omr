@@ -32,12 +32,15 @@ class Modesyear extends Model
 	$response_array=ias_model_year_paper($exam[0]->model_year,$exam[0]->paper);
 		}
 		else{
-	$sub=DB::table('0_subjects')->whereIn('subject_id',explode(',',$exam[0]->subject_string_final))->pluck('subject_name');
+			foreach (explode(',',$exam[0]->subject_string_final) as $key => $value) {
+	$sub[]=DB::table('0_subjects')->where('subject_id',$value)->select('subject_name')->get()[0]->subject_name;
+			}
 	$response_array[0]=$sub;
 	$response_array[1]=array();
 	$response_array[6]=$exam[0]->to_from_range;
 	$response_array[5]=$exam[0]->mark_file_long_string;
 		}
+		// return $response_array;
 	$mark_file_long_string=$response_array[5];
 	$subject=$response_array[0];
 	$section=array_filter($response_array[1]);
@@ -85,7 +88,7 @@ else
 		  $this_mark=$mark_file_array[$mark];
 		    for($m=$one;$m<=$two;$m++)
 		    {	
-		    	if($otherarray[$m]=='X'){
+		    	if(isset($otherarray[$m]) && $otherarray[$m]=='X'){
 		       $all_sub_marks_array[]=0;
 		   		}
 		   		else{
@@ -99,11 +102,11 @@ else
 		return $all_sub_marks_array;
 	}
 	public static function markcount($cal,$analysis,$result,$partial){
-		// return $partial;
+		// return $cal['s'];
 				$pa=0;
 
 		if($partial=="")
-		$partial="BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2";
+		$partial="BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2,BD-2,ABD-3,ABC-3,CD-2,CD-2";
 		$parr=explode(",", $partial);
 
 		$ar1=[
@@ -162,11 +165,12 @@ else
 						$secti="Section1";
 					// return $cal['s'];
 					// $a;
-				if($range[$b]==$key){
+				if($range[$b]-1==$key){
+					$a++;
 					if(isset($cal['s'][$a]))
 					$subjects=$cal['s'][$a];
 					$b++;
-					$a++;
+					// return $subjects.$key;
 				}
 			if($value=="X"){
 				if(isset($ad[$subjects.'_'.$secti]))
@@ -228,7 +232,10 @@ else
 			}
 		}
 
-		return [
+		return ['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
 			"Section_Count"=>$count,
 			"Subjects"=>$ar2,
 			"Right"=>$aa,
