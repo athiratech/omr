@@ -3,6 +3,7 @@
 namespace App\OmrModels;
 use App\BaseModels\Campus;
 use Auth;
+use File;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 include_once($_SERVER['DOCUMENT_ROOT'].'/sri_chaitanya/Exam_Admin/3_view_created_exam/z_ias_format.php');
@@ -134,7 +135,7 @@ class Exam extends Model
     return $out;
   }
   public static function test_type_list($data){
-    $out=DB::table('0_test_types')->select('test_type_id','test_type_name')->get();
+    $out=DB::table('0_test_types')->select('test_type_id','test_type_name')->where('test_type_id','<>','0')->get();
     return 
                      ['Login' => [
                             'response_message'=>"success",
@@ -142,19 +143,34 @@ class Exam extends Model
                             ],"data"=>$out];
   }
   public static function AnswerDetails($data){
+    // return $data;
+    if(!isset($data->subject_id)){
+      
+      $data->subject_id=1;
+    }
     $type="";
-   $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl','test_code')->get();
+   $correctans=static::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl','test_code','mode')->get();
+   if(!isset($correctans[0]))
+    return  [
+              'Login' => [
+                            'response_message'=>"Send correct exam_id",
+                            'response_code'=>"0",
+                            ]
+            ];
 
    if($correctans[0]->omr_scanning_type=='advanced')
    {
-
+    $result_string=Mode::where('test_mode_id',$correctans[0]->mode)->pluck('marks_upload_final_table_name')[0];
+    $Result=DB::table($result_string)->where('test_code_sl_id',$data->exam_id)->where('STUD_ID',Auth::user()->ADM_NO)->pluck('Result_String')[0];
      $filedata=ias_model_year_paper($correctans[0]->model_year,$correctans[0]->paper);
      $marked=static::AnswerObtain($data,$correctans,array_filter($filedata[1]));
-
-     return static::AdvanceAnswer($filedata,$correctans,$marked);
+     // return $Result;
+     return static::AdvanceAnswer($filedata,$correctans,$marked,$data->subject_id,$Result);
     }
     else
     {
+      $result_string=Mode::where('test_mode_id',$correctans[0]->mode)->pluck('marks_upload_final_table_name')[0];
+    $Result=DB::table($result_string)->where('test_code_sl_id',$data->exam_id)->where('STUD_ID',Auth::user()->ADM_NO)->pluck('Result_String')[0];
      $marked=static::AnswerObtain($data,$correctans,$type);
 
       $subj=array();
@@ -166,12 +182,15 @@ class Exam extends Model
         $subj[]=DB::table('0_subjects')->where('subject_id',$value)->pluck('subject_name')[0];
       }
       $filedata[0]=$subj;
+      $filedata[9]=explode(',',$correctans[0]->subject_string_final);
 
-       return static::NonAdvanceAnswer($filedata,$correctans,$marked);
+       return static::NonAdvanceAnswer($filedata,$correctans,$marked,$data->subject_id,$Result);
     }
 
   }
-  public static function NonAdvanceAnswer($data,$ans,$marked){
+  public static function NonAdvanceAnswer($data,$ans,$marked,$id,$result){
+    $result=str_split($result);
+    // return $result;
     $sl=$ans[0]->sl;
     $test_code=$ans[0]->test_code;
    $list=array();
@@ -188,7 +207,10 @@ class Exam extends Model
 
     $temp="";
     if(count($marked['ansdata'])==0)
-      return "No Record Found";
+      return ['Login' => [
+                            'response_message'=>"No record found",
+                            'response_code'=>"0",
+                            ]];
     
     for ($key=0; $key<=end($b3)-1; $key++) 
     { 
@@ -196,28 +218,47 @@ class Exam extends Model
 
         $subject=$subject_name[$sub];
 
-      if($key==end($subjectwise))
+      if($key==end($subjectwise)-1)
       {
         $su++;        $sub++;
       }
-      $list['Exam_Id']=$sl;
-      $list['Exam_Name']=$test_code;
-      $list['Subject'][$subject][$i]= new \stdClass();
-      $list['Subject'][$subject][$i]->{'question_no'}=$i;
+      // $list['Exam_Id']=$sl;
+      // $list['Exam_Name']=$test_code;
+      // $list['Subject'][$subject][$i]= new \stdClass();
+      $list[$subject][$i]['question_no']=$i;
       // $list[$subject][$i]->{'subject_name'}=$subject;
-      $list['Subject'][$subject][$i]->{'correct_answer'}=$correct[$ans];
-      $list['Subject'][$subject][$i]->{'marked_answer'}=$marked['ansdata'][$ans];
-       $list['Number_of_Subjects']=count($subject_name);
+      $list[$subject][$i]['question_type']="";
+
+      $list[$subject][$i]['correct_answer']=$correct[$ans];
+      $list[$subject][$i]['marked_answer']=$marked['ansdata'][$ans];
+       // $list['Number_of_Subjects']=count($subject_name);
+      // if(isset($result[$i]))
+       $list[$subject][$i]['result_string']=$result[$i-1];
+
       $i++;
       $ans++;
     }
+     $sub=Subject::where('subject_id',$id)->pluck('subject_name')[0];
+      $new=array();
+      if(isset($list[$sub]))
+      for ($i=1; $i <=1 ; $i++) 
+      {
+        $new[$i]['Section']='Section'.$i;
+        $new[$i]['question_type']="";
+        $new[$i]['Answer']=array_values($list[$sub]);
+      }
+      $new=array_values($new);
+      // $sb=array_merge($ans[0]->subject_string_final,$subject_name);
     return 
                      ['Login' => [
                             'response_message'=>"success",
                             'response_code'=>"1",
-                            ],"data"=>$list];
+                            ],"Data"=>$new,"subject_id"=>$data[9],"subject_name"=>$subject_name];
   }
-  public static function AdvanceAnswer($data,$ans,$marked){
+  public static function AdvanceAnswer($data,$ans,$marked,$id,$result){
+    // return $data[1];
+    $sbi=array();
+    $a=0;
     $sl=$ans[0]->sl;
     $test_code=$ans[0]->test_code;
     $list=array();
@@ -229,15 +270,25 @@ class Exam extends Model
     $subject_list=explode(',', $data[6]);
     $subject_name=array_filter($data[0]);
     $section_list=array_filter($data[1]);
+    $result_list=str_split($result);
+    $qno=array_filter($data[4]);
+    $se_count=array_unique($section_list);
+    // return $se_count;
     $temp="";
     if(count($marked['ansdata'])==0)
-      return "No Record Found";
+      return ['Login' => [
+                            'response_message'=>"No record found",
+                            'response_code'=>"0",
+                            ]];
+    $ch=0;
     foreach ($section_list as $key => $value) 
     {
       $subjectwise=explode('-',$subject_list[$su]);
         $subject=$subject_name[$sub];
+        $subject_id=Subject::where('subject_name',$subject_name[$sub])->pluck('subject_id')[0];
       if($key==end($subjectwise))
       {
+        $sbi[]=$subject_id;
         $su++;        $sub++;
       }
       if($temp!=$value)
@@ -245,26 +296,68 @@ class Exam extends Model
         $temp=$value;
         $s++;
       }
-      if($s>3)
+      if($s>count($se_count))
         $s=1;
-      $list['Exam_Id']=$sl;
-      $list['Exam_Name']=$test_code;
-      $list['Subject'][$subject.'_Section'.$s][$i]= new \stdClass();
-      $list['Subject'][$subject.'_Section'.$s][$i]->{'question_no'}=$key;
-      $list['Subject'][$subject.'_Section'.$s][$i]->{'question_type'}=$value;
-      // $list[$i]->{'section'}='Section'.$s;
-      // $list[$i]->{'subject_name'}=$subject;
-      $list['Subject'][$subject.'_Section'.$s][$i]->{'correct_answer'}=$correct[$ans];
-       $list['Subject'][$subject.'_Section'.$s][$i]->{'marked_answer'}=$marked['ansdata'][$ans];
-       $list['Number_of_Subjects']=count($subject_name);
+      // $list['Exam_Id']=$sl;
+      // $list['Exam_Name']=$test_code;
+      //  $list['Number_of_Subjects']=count($subject_name);
+       // $list[]['Subject']=$subject;
+       // $list[$subject]['Section'.$s]='Section'.$s;
+       if(isset($correct[$ans])){
+       $list[$subject]['Section'.$s][$key]['question_no']=$qno[$key-1];
+       // if(isset($qno[$key]))
+       $list[$subject]['Section'.$s][$key]['question_type']=$value;
+       $list[$subject]['Section'.$s][$key]['correct_answer']=static::orcondition($correct[$ans]);
+       $list[$subject]['Section'.$s][$key]['marked_answer']=$marked['ansdata'][$ans];
+       $list[$subject]['Section'.$s][$key]['result_string']=$result_list[$key-1];
+       }// $list[$s]['Section'][]='Section'.$s;
+       $ch++;
+       // $list['data'][]='Section'.$s;
+      // $list[$s]['data'][][$key]['question_no']=$key;
+      // $list[$s]['data'][][$key]['question_type']=$value;
+      // $list[$s]['data'][][$key]['correct_answer']=static::orcondition($correct[$ans]);
+      // $list[$s]['data'][][$key]['marked_answer']=$marked['ansdata'][$ans];
+ 
+      // $list['Subject'][$subject.'_Section'.$s][]= new \stdClass();
+       // $list['Subject'][$subject.'_Section'.$s]=array();
+      // $list['Subject'][$subject][$i]['question_no']=$key;
+      // $list['Subject'][$subject][$i]['section_name']='Section'.$s;
+      // $list['Subject'][$subject][$i]['question_type']=$value;
+      // $list['Subject'][$subject][$i]['correct_answer']=static::orcondition($correct[$ans]);
+      //  $list['Subject'][$subject][$i]['marked_answer']=$marked['ansdata'][$ans];
+      // $list['Data'][]=array();
+      // $a=$s;
+      // if($temp!=$s){
+      // $list[$i]['Subject']=$subject;
+      // $list[$i]['Subject_id']=$subject_id;
+      // $list[$i]['Section']='Section'.$s;
+      // }
+      // $list['Data'][]['Section'.$s]='Section'.$s;
+
+      // $list[$i]['data']['question_no']=$key;
+      // $list[$i]['data']['question_type']=$value;
+      // $list[$i]['data']['correct_answer']=static::orcondition($correct[$ans]);
+      // $list[$i]['data']['marked_answer']=$marked['ansdata'][$ans];
       $i++;
       $ans++;
       }
+      // $new=array_values($list['PHYSICS']['Section1']);
+      $sub=Subject::where('subject_id',$id)->pluck('subject_name')[0];
+      $new=array();
+      if(isset($list[strtoupper($sub)]))
+      for ($i=1; $i <=count($list[strtoupper($sub)]) ; $i++) 
+      {
+        $sd=array_values($list[strtoupper($sub)]['Section'.$i]);
+        $new[$i]['Section']='Section'.$i;
+        $new[$i]['question_type']=$sd[key($sd)]['question_type'];
+        $new[$i]['Answer']=$sd;
+      }
+      $new=array_values($new);
       return 
                      ['Login' => [
                             'response_message'=>"success",
                             'response_code'=>"1",
-                            ],"data"=>$list];
+                            ],"Data"=>$new,'subject_id'=>$sbi,"subject_name"=>array_values($subject_name)];
   }
   public static function AnswerObtain($data,$ans,$type)
   {
@@ -307,6 +400,7 @@ class Exam extends Model
       }
       else
       {
+        if(isset($type[$a]))
         if($type[$a]=="mb")      
       $temp.=array_search($data,$pqrst);
         elseif($type[$a]=="i")
@@ -327,7 +421,9 @@ class Exam extends Model
 
 // ADVANCED
 public static function advanced($filename,$sl){
-
+if(!File::exists($filename))
+  return ["Line"=>"file not found"];
+else
 $lines = file($filename);
 
 $count=0;
@@ -467,6 +563,26 @@ for($in=0;$in<$it;$in=$in+4)
    }
 
    return array();
+  }
+  public static function orcondition($data){
+    $new="";
+    $ar=array();
+    if(substr($data, 0, 2)=="OR")
+    {
+      $ar=explode('-',$data);
+      unset($ar[0]);
+      foreach (array_values($ar) as $key => $value) 
+      {
+        if($new=="")
+        $new.=$value;
+      else
+        $new.=' or '.$value;
+
+      }
+      return $new;
+    }
+    return $data;
+
   }
 
 }

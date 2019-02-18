@@ -69,4 +69,20 @@ class ResultController extends Controller
         $res=Subject::sectionlist($request);
         return $res;
     }
+    public function subject(Request $request){
+      $res=Exam::AnswerDetails($request)['subject_name'];
+      $res1=Exam::AnswerDetails($request)['subject_id'];
+      foreach ($res as $key => $value) {
+          $arr[$key]['subject_id']=$res1[$key];
+          $arr[$key]['subject_name']=$value;
+      }
+
+        // return $res;
+        return ['Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
+                 "Data"=>$arr
+                ];
+    }
 }

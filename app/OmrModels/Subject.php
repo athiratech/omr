@@ -76,6 +76,7 @@ class Subject extends Model
                   $test=array();
                   $block_no=array();
                   $exam=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode)['ExamList'];  
+                  // return $exam;
 
                         $block_no=DB::table('Result_Application_BlockCount')->where('API','examlist')->pluck('Block_Count');
                   $page=$data->page;
@@ -222,6 +223,9 @@ class Subject extends Model
             if($test_type!="")
             $correctans->where('ty.test_type_id',$test_type);
 
+            if($mode!="")
+            $correctans->where('1_exam_admin_create_exam.mode',$mode);
+
                $correctans=$correctans->get();
                
 
@@ -257,6 +261,16 @@ class Subject extends Model
                 if(isset($arr[$keyh]) && isset($b[0][$keyh]))
                 $max[$arr[$keyh]]=$b[0][$keyh];
               }
+               if(!isset($max[$subject_name]))
+                  return ['Result'=>['Login' => [
+                            'response_message'=>"No record found for this information",
+                            'response_code'=>"0",
+                            ]],'ExamList'=>$examlist
+                            ,'StudentList'=>['Login' => [
+                            'response_message'=>"No record found for this information",
+                            'response_code'=>"0",
+                            ]],
+                          ];
             $list=$max[$subject_name];
 
             }

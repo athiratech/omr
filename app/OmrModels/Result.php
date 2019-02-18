@@ -146,6 +146,8 @@ class Result extends Authenticatable
              $details=[
                     'NAME'=>ucfirst(strtolower($student[0]->PARENT_NAME)),
                     'USER'=>'PARENT',
+                    'PROGRAM_NAME'=>Program::where('PROGRAM_ID',Auth::guard('tparent')->user()->PROGRAM_ID)->pluck('PROGRAM_NAME')[0],
+                    'CLASS_NAME'=>StudyClass::where('CLASS_ID',Auth::guard('tparent')->user()->CLASS_ID)->pluck('CLASS_NAME')[0],
                     'CAMPUS_NAME'=>ucfirst(strtolower($campus[0])),
                     'STUDENT'=>ucfirst(strtolower(Auth::guard('tparent')->user()->NAME)),
                     'CAMPUS_ID'=>Auth::guard('tparent')->user()->CAMPUS_ID,

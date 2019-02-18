@@ -27,6 +27,7 @@ Route::get('testapi',function(){
 	{	
 		/*OMR Result Application*/	
 		Route::post('total_percentage','OmrControllers\ResultController@total_percentage');
+		Route::get('subject/{exam_id}','OmrControllers\ResultController@subject');
 		Route::post('answer_details','OmrControllers\ResultController@AnswerDetails');
 		Route::post('exam_info','OmrControllers\ResultController@exam_info');
 		// Route::post('teacher_exam_info','OmrControllers\ResultController@teacher_exam_info');
