@@ -27,7 +27,11 @@ class Subject extends Model
         $employee_id=Auth::user()->payroll_id;
         $exam_id=$data->exam_id;
         $test_type=$data->test_type;
-        $mode=$data->mode;
+        $mode=$data->mode_id;
+        if(isset($data->date))
+        $date=$data->date;
+        else
+          $date=date("Y-m");
 
         $subject_name=DB::table('0_subjects')->where('subject_id',$subject_id)->pluck('subject_name')[0];
 
@@ -66,20 +70,29 @@ class Subject extends Model
                     ->whereRaw('FIND_IN_SET(?,tm.test_mode_subjects)', [$subject_id])
                     ->select('eg.test_sl','tm.marks_upload_final_table_name','e.max_marks','e.model_year','e.paper','e.omr_scanning_type','tm.test_mode_name','tm.test_mode_id','tc.CAMPUS_ID')->get();
  // return \Request::segment(2);
+                  $page=$data->page;
+
                  if($change=="p"){
                   if(isset($data->exam_id))
-                  return static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode)['Result'];  
+                  return static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode,$date,$page)['Result'];  
                 else
-                   return static::examstudent($output,$subject_name,$section,"0",$data->section_id,$test_type,$mode)['Result'];  
+                   return static::examstudent($output,$subject_name,$section,"0",$data->section_id,$test_type,$mode,$date,$page)['Result'];  
                 }
                  elseif($change=="e"){
                   $test=array();
                   $block_no=array();
-                  $exam=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode)['ExamList'];  
+                  $exam=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode,$date,$page)['ExamList'];  
                   // return $exam;
+                  // return [
+
+                  //    'Login' => [
+                  //           'response_message'=>"success",
+                  //           'response_code'=>"1",
+                  //           ],
+                  //   "Data"=>$exam,
+                  //       ];
 
                         $block_no=DB::table('Result_Application_BlockCount')->where('API','examlist')->pluck('Block_Count');
-                  $page=$data->page;
                   $max=$block_no[0]*$page;
                   $min=$max-$block_no[0];
                   for ($key=$min; $key <$max; $key++) 
@@ -97,9 +110,11 @@ class Subject extends Model
                             $examlist[$key]['test_code']=$value->test_code;
                             $data1=new \stdClass(); 
                             $data1->exam_id=$value->sl;
-                            $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
+                            $examlist[$key]['Total_percentage']=22;
+                            // $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
+                            //date("d-m-Y", strtotime($originalDate));
                             $examlist[$key]['test_sl']=$value->sl;
-                            $examlist[$key]['start_date']=$value->start_date;
+                            $examlist[$key]['start_date']=date("d-m-Y",strtotime($value->start_date));
                             $examlist[$key]['test_type_name']=$value->test_type_name;
                             $examlist[$key]['test_mode_name']=$value->test_mode_name;
                           }
@@ -111,9 +126,11 @@ class Subject extends Model
                             $examlist[$key]['test_code']=$value->test_code;
                             $data1=new \stdClass(); 
                             $data1->exam_id=$value->sl;
-                            $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
+                            $examlist[$key]['Total_percentage']=21;
+                            // $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
+                            
                             $examlist[$key]['test_sl']=$value->sl;
-                            $examlist[$key]['start_date']=$value->start_date;
+                            $examlist[$key]['start_date']=date("d-m-Y",strtotime($value->start_date));
                             $examlist[$key]['test_type_name']=$value->test_type_name;
                             $examlist[$key]['test_mode_name']=$value->test_mode_name;
                           }
@@ -126,13 +143,14 @@ class Subject extends Model
                             'response_message'=>"success",
                             'response_code'=>"1",
                             ],
+                            "Exam_date"=>$date,
                     "Totalpage"=>ceil((count($exam))/($block_no[0]+1)),
                     "Block_Count"=>$block_no[0],
                     "Exam"=>$examlist,
                         ];
                   }               
                    elseif($change=="s"){ 
-                  $student=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode)['StudentList'];
+                  $student=static::examstudent($output,$subject_name,$section,$data->exam_id,$data->section_id,$test_type,$mode,$date,$page)['StudentList'];
                   if($student==0)
                      return [
                         'Login' => [
@@ -164,23 +182,27 @@ class Subject extends Model
                     if(isset($student[$j]['obtained'][$i]->test_code)){
 
                       $studentlist1['max_marks']=$student[$j]['max_marks'];
-                      $studentlist1['start_date']=$student[$j]['obtained'][$i]->start_date;
+                      $studentlist[$i]['start_date']=$student[$j]['obtained'][$i]->start_date;
                       $studentlist1['test_code']=$student[$j]['obtained'][$i]->test_code;
                       $studentlist1['section_name']=$student[$j]['obtained'][$i]->section_name;
                       $studentlist[$i]['STUD_ID']=$student[$j]['obtained'][$i]->STUD_ID;
                       $studentlist[$i]['STUD_NAME']=$student[$j]['obtained'][$i]->SURNAME.' '.$student[$j]['obtained'][$i]->NAME;
-                      $studentlist[$i]['STATE_RANK']=$student[$j]['obtained'][$i]->STATE_RANK;
-                      $studentlist[$i]['DISTRICT_RANK']=$student[$j]['obtained'][$i]->DISTRICT_RANK;
-                      $studentlist[$i]['CITY_RANK']=$student[$j]['obtained'][$i]->CITY_RANK;
-                      $studentlist[$i]['CAMP_RANK']=$student[$j]['obtained'][$i]->CAMP_RANK;
-                      $studentlist[$i]['SEC_RANK']=$student[$j]['obtained'][$i]->SEC_RANK;
+                      $studentlist[$i]['PROGRAM_RANK']=$student[$j]['obtained'][$i]->PROGRAM_RANK;
                       $studentlist[$i]['STREAM_RANK']=$student[$j]['obtained'][$i]->STREAM_RANK;
-                      $studentlist[$i][strtoupper($subject_name)]=$student[$j]['obtained'][$i]->{strtoupper($subject_name)};
+                      $studentlist[$i]['SEC_RANK']=$student[$j]['obtained'][$i]->SEC_RANK;
+                      $studentlist[$i]['CAMP_RANK']=$student[$j]['obtained'][$i]->CAMP_RANK;
+                      $studentlist[$i]['CITY_RANK']=$student[$j]['obtained'][$i]->CITY_RANK;
+                      $studentlist[$i]['DISTRICT_RANK']=$student[$j]['obtained'][$i]->DISTRICT_RANK;
+                      $studentlist[$i]['STATE_RANK']=$student[$j]['obtained'][$i]->STATE_RANK;
+                      $studentlist[$i]['ALL_INDIA_RANK']=$student[$j]['obtained'][$i]->ALL_INDIA_RANK;
+                      $studentlist[$i]['TOTAL']=$student[$j]['obtained'][$i]->{strtoupper($subject_name)}.'/'.$student[$j]['max_marks'];
+                      // $studentlist[$i][strtoupper($subject_name)]=$student[$j]['obtained'][$i]->{strtoupper($subject_name)};
+                      
 
                     $data1=new \stdClass(); 
                     $data1->exam_id=$data->exam_id;
                     $data1->STUD_ID=$student[$j]['obtained'][$i]->STUD_ID;
-                      $studentlist[$i]['Exam_Info']=Modesyear::exam_info($data1,1);
+                      // $studentlist[$i]['Exam_Info']=Modesyear::exam_info($data1,1);
                     }}
                   }
                   if(empty($studentlist1))
@@ -199,16 +221,16 @@ class Subject extends Model
                             ],
                     "Totalpage"=>ceil($totalpage),
                     "Block_Count"=>$block_no[0],
-                    "Max_Marks"=>$studentlist1['max_marks'],
-                    "Start_Date"=>$studentlist1['start_date'],
-                    "Test_Code"=>$studentlist1['test_code'],
-                    "Section_Name"=>$studentlist1['section_name'],
-                    "Data"=>$studentlist
+                    // "Max_Marks"=>$studentlist1['max_marks'],
+                    // "Start_Date"=>$studentlist1['start_date'],
+                    // "Test_Code"=>$studentlist1['test_code'],
+                    // "Section_Name"=>$studentlist1['section_name'],
+                    "Data"=>array_values($studentlist)
                   ];
                 }
 
     }
-    public static function examstudent($output,$subject_name,$section,$exam_id,$section_id,$test_type,$mode)
+    public static function examstudent($output,$subject_name,$section,$exam_id,$section_id,$test_type,$mode,$date,$page)
     {
         $examlist=array();
         $studentlist=array();
@@ -218,18 +240,34 @@ class Subject extends Model
            $correctans=Exam::join('0_test_types as ty','1_exam_admin_create_exam.test_type','=','ty.test_type_id')
                         ->join('0_test_modes as tm','tm.test_mode_id','1_exam_admin_create_exam.mode')
                          ->select('1_exam_admin_create_exam.model_year','1_exam_admin_create_exam.paper','1_exam_admin_create_exam.omr_scanning_type','1_exam_admin_create_exam.to_from_range','1_exam_admin_create_exam.subject_string_final','1_exam_admin_create_exam.sl','1_exam_admin_create_exam.test_code','tm.test_mode_id','ty.test_type_id','tm.test_mode_name','ty.test_type_name','1_exam_admin_create_exam.start_date')
-                         ->where('sl',$value->test_sl)
                         ;
+                        if(isset($page))
+                         $correctans->where('sl',$value->test_sl);
+
             if($test_type!="")
             $correctans->where('ty.test_type_id',$test_type);
 
             if($mode!="")
             $correctans->where('1_exam_admin_create_exam.mode',$mode);
+            if(isset($date))
+            $correctans->where('1_exam_admin_create_exam.start_date','like',$date.'%');
 
                $correctans=$correctans->get();
+          if(empty($correctans[0]))
+            return ['Result'=>['Login' => [
+                            'response_message'=>"No record found for this information",
+                            'response_code'=>"0",
+                            ]],'ExamList'=>$examlist
+                            ,'StudentList'=>['Login' => [
+                            'response_message'=>"No record found for this information",
+                            'response_code'=>"0",
+                            ]],
+                          ];
                
-
+               // if(isset($correctans))
            $examlist[]=$correctans[0];
+         // else
+         //  $examlist[]="";
 
            if($correctans[0]->omr_scanning_type=='advanced')
            {
@@ -290,9 +328,9 @@ class Subject extends Model
                             ]],
                           ];
               if($exam_id !="0")
-            $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,STATE_RANK,DISTRICT_RANK,CITY_RANK,CAMP_RANK,SEC_RANK,STREAM_RANK,st.NAME,st.SURNAME from ".$table."  as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$exam_id."' and `st`.`SECTION_ID`='".$section_id."'"); 
+            $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,PROGRAM_RANK,STREAM_RANK,SEC_RANK,CAMP_RANK,CITY_RANK,DISTRICT_RANK,STATE_RANK,ALL_INDIA_RANK,st.NAME,st.SURNAME from ".$table."  as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$exam_id."' and `st`.`SECTION_ID`='".$section_id."'"); 
           else
-          $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,STATE_RANK,DISTRICT_RANK,CITY_RANK,CAMP_RANK,SEC_RANK,STREAM_RANK,st.NAME,st.SURNAME from ".$table." as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$value->test_sl."' and `st`.`SECTION_ID` in (".implode(',',$section1).")");
+          $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,PROGRAM_RANK,STREAM_RANK,SEC_RANK,CAMP_RANK,CITY_RANK,DISTRICT_RANK,STATE_RANK,ALL_INDIA_RANK,st.NAME,st.SURNAME from ".$table." as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$value->test_sl."' and `st`.`SECTION_ID` in (".implode(',',$section1).")");
 
            $studentlist[$key]['obtained']=$res;
            $studentlist[$key]['max_marks']=$list;
@@ -326,7 +364,7 @@ class Subject extends Model
                             'response_code'=>"1",
                             ],
             "data"=>$final],
-          "ExamList"=>$examlist,
+          "ExamList"=>array_values($examlist),
           "StudentList"=>$studentlist,
         ];       
 

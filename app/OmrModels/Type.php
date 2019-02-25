@@ -55,11 +55,13 @@ class Type extends Model
 	   $ar1=[
 			"Right",
 			"Wrong",
+			"Negative",
 			"Unattempted",
 			"Partial",
 			"Grace",
 			"Deleted",
-			"Missed_Partial"
+			"Missed_Partial",
+			"Total"
 			];
 			if(is_array($subject))
 		$ar2=array_values(array_filter($subject));
@@ -78,7 +80,7 @@ class Type extends Model
 	       	"s"=>$subject,
 	       	"se"=>$section,
 	       ];
-	       $markcount[]=static::markcount($cal,$result,$key);
+	       $markcount[]=static::markcount($cal,$result,$key,$mark_file_long_string);
 	   }
 	   // return $markcount;
 	   $exact_ans=array();
@@ -179,7 +181,11 @@ class Type extends Model
 		}
 		return $all_sub_marks_array;
 	}
-	public static function markcount($cal,$result,$inc){
+	public static function markcount($cal,$result,$inc,$mark_file_long_string){
+		$m=3;
+		$negative=explode(',', $mark_file_long_string);
+		$neg_mark=$negative[$m];
+
 		$pa=0;
 		if(isset($result[0]->Partial_String))
 			if($result[0]->Partial_String=="")
@@ -211,7 +217,7 @@ class Type extends Model
 				$ra=explode('-',$value);
 				$range[]=end($ra);
 			}
-				$ad=array();$ap=array();$au=array();$ag=array();$aa=array();$ab=array();$am=array();	
+				$ad=array();$ap=array();$au=array();$ag=array();$aa=array();$ab=array();$am=array();$ast=array();$an=array();	
 				$subjects=$cal['s'][$a];
 				if(!empty($cal['se']))
 				$section=$cal['se'][$sect];
@@ -228,6 +234,7 @@ class Type extends Model
 					$count++;
 					$section=$cal['se'][$sect];
 					$secti="Section".$count;
+					$neg_mark=$negative[$m];
 					}
 					if($secti=="Section4")
 						$secti="Section1";
@@ -240,22 +247,36 @@ class Type extends Model
 
 
 			if($value=="X"){
+
 				$ad[$subjects][$secti][$key]=$cal['m'][$key];
 			}
 			elseif($value=="G"){
+				$ast[$subjects][$secti][$key]=$cal['m'][$key];
+
 				$ag[$subjects][$secti][$key]=$cal['m'][$key];
 			}
 			elseif($value=="U"){
 				$au[$subjects][$secti][$key]=$cal['m'][$key];
 			}
 			elseif($value=="P"){	
+				$ast[$subjects][$secti][$key]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+
 				$ap[$subjects][$secti][$key]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
 				$am[$subjects][$secti][$key]=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));	
 			}
 			elseif($value=="R"){
+				$ast[$subjects][$secti][$key]=$cal['m'][$key];
+
 				$aa[$subjects][$secti][$key]=$cal['m'][$key];		
 			}
 			else{
+				if(isset($an[$subjects][$secti][$key]))
+				$an[$subjects][$secti][$key]+=$neg_mark;
+				else
+				$an[$subjects][$secti][$key]=$neg_mark;
+
+				$ast[$subjects][$secti][$key]=$neg_mark;
+
 				$ab[$subjects][$secti][$key]=$cal['m'][$key];			
 			}
 			$sect++;
@@ -275,11 +296,13 @@ class Type extends Model
 			"Subjects"=>$su,
 			"Right"=>$aa,
 			"Wrong"=>$ab,
+			"Negative"=>$an,
 			"Unattempted"=>$au,
 			"Partial"=>$ap,
 			"Grace"=>$ag,
 			"Deleted"=>$ad,
 			"Missed_Partial"=>$am,
+			"Total"=>$ast,
 			"Subject_Total"=>$extra,
 			"Exam_Total_Mark"=>$t,
 		];
@@ -292,17 +315,19 @@ class Type extends Model
 	   $ar1=[
 			"Right",
 			"Wrong",
+			"Negative",
 			"Unattempted",
 			"Partial",
 			"Grace",
 			"Deleted",
-			"Missed_Partial"			
+			"Missed_Partial",
+			"Total"			
 			];
 	   foreach ($ar1 as $key => $value) {
 
 	   	foreach ($cal['s'] as $key2 => $value2) {
 	   		for ($i=1; $i <=$ans['Section_Count']; $i++) {
-	   			$ans[$ar1[$key]][$ar2[$key2].'_Section'.$i]=number_format((float) ($ans[$ar1[$key]][$ar2[$key2]]['Section'.$i]/$ans['Sectionwise_total'][$ar2[$key2]]['Section'.$i])*100, '2', '.', ''); 
+	   			$ans[$ar2[$key2]]['Section'.$i][$ar1[$key]]=number_format((float) ($ans[$ar1[$key]][$ar2[$key2]]['Section'.$i]/$ans['Sectionwise_total'][$ar2[$key2]]['Section'.$i])*100, '2', '.', ''); 
 
 	   	   		}	
 	   			
@@ -336,6 +361,7 @@ class Type extends Model
 				$weak.=$value.',';
 			$a++;
 		}
+		// return $perc;
 		unset($ans['Sectionwise_total']);
 		unset($ans['Section_Count']);
 		unset($ans['Subjects']);
@@ -347,11 +373,36 @@ class Type extends Model
 	   	foreach ($cal['s'] as $key2 => $value2) 
 	   	{
 		if(isset($ans[$ar1[$key]][$ar2[$key2]]))
-	   			unset($ans[$ar1[$key]][$ar2[$key2]]); 
+	   			unset($ans[$ar1[$key]]); 
 	   	}
 	   }
+	   $ap=array();
+	   $a=0;
+		foreach ($ans as $key => $value) 
+		{
+			$ap[$a]['Subject']=$key;
+			for ($i=1; $i <= $section; $i++) { 
+				foreach ($ar1 as $key1 => $value1) {
+					if(isset($ap[$a][$value1]) && isset($value['Section'.$i][$value1]))
+						$ap[$a][$value1]+=$value['Section'.$i][$value1]/3; 
+					elseif(isset($value['Section'.$i][$value1]))
+						$ap[$a][$value1]=$value['Section'.$i][$value1]/3;
+					$ap[$a][$value1]=number_format((float)($ap[$a][$value1]),'2','.','');
+
+				}
+			}
+			$ap[$a]['Sectiondetails']=array_values($value);
+
+			$a++;
+		
+		}
 		return [
-			"Answer_details"=>$ans,
+			'Login' => [
+                            'response_message'=>"success",
+                            'response_code'=>"1",
+                            ],
+			"Data"=>$ap,
+			// "Extra"=>$ans,
 			"weak_subject"=>$weak,
 			"strong_subject"=>$strong,
 				];

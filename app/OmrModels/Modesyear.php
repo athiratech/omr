@@ -53,6 +53,7 @@ if(isset($result[0]->Partial_String))
 else
 	$partial="";
 	$all_sub_marks_array=static::get_marks_string($to_from_range,$mark_file_long_string,$correct);
+	// return str_split($result[0]->Result_String);
 
       $cal=[
        	"b"=>str_split($result[0]->Result_String),
@@ -62,7 +63,7 @@ else
        	"se"=>$section,
        ];
        $analysis=static::strongweak($cal,$result,$exam[0]->max_marks);
-       return static::markcount($cal,$analysis,$result,$partial);
+       return static::markcount($cal,$analysis,$result,$partial,$mark_file_long_string);
     }
 
 	public static function get_marks_string($to_from_range,$mark_file_long_string,$correct) //CRB not required
@@ -101,8 +102,22 @@ else
 		}
 		return $all_sub_marks_array;
 	}
-	public static function markcount($cal,$analysis,$result,$partial){
+	public static function markcount($cal,$analysis,$result,$partial,$mark_file_long_string){
 		// return $cal['s'];
+		$m=3;
+		$negative=explode(',', $mark_file_long_string);
+		$neg_mark=$negative[$m];
+		$ex=[
+			"Right",
+			"Wrong",
+			"Unattempted",
+			"Partial",
+			"Grace",
+			"Deleted",
+			"Missed_Partial",
+			"Negative",
+			"Total"
+		];
 				$pa=0;
 
 		if($partial=="")
@@ -117,6 +132,8 @@ else
 			"ag",
 			"ad",
 			"am",
+			"an",
+			"at",
 			];
 		$extra=array();
 		if(is_array($cal['s'])){
@@ -126,12 +143,12 @@ else
 		else{
 		$ar2=$cal['s'];
 		}
-		foreach ($cal['s'] as $key => $value) {
-			$value=strtoupper($value);
-		$extra['marks'][]=$result[0]->{$value};
-		$extra['subjects'][]=$value;
-		}
-		$extra['TOTAL']=$result[0]->TOTAL;
+		// foreach ($cal['s'] as $key => $value) {
+		// 	$value=strtoupper($value);
+		// $extra['marks'][]=$result[0]->{$value};
+		// $extra['subjects'][]=$value;
+		// }
+		$extra=$result[0]->TOTAL;
 
 			if(isset($cal['s'][0]))
 				$a=0;
@@ -143,7 +160,7 @@ else
 				$ra=explode('-',$value);
 				$range[]=end($ra);
 			}
-				$ad=array();$ap=array();$au=array();$ag=array();$aa=array();$ab=array();	
+				$ad=array();$ap=array();$au=array();$ag=array();$aa=array();$ab=array();	$am=array();	
 				$subjects=$cal['s'][$a];
 				if(!empty($cal['se']))
 				$section=$cal['se'][$sect];
@@ -151,21 +168,26 @@ else
 				$section="";
 				$xt=0;$gt=0;$pt=0;$ut=0;$rt=0;$wt=0;
 				$t=array_sum($cal['m']);
-		foreach ($cal['b'] as $key => $value) {
+		foreach ($cal['b'] as $key => $value) 
+		{
+
 			if(!empty($cal['se']))
 					if($section!=$cal['se'][$sect])
 					{
+			
+						$m=$m+4;
 						if($count==4)
 							$count=1;
 					$count++;
 					$section=$cal['se'][$sect];
 					$secti="Section".$count;
+					$neg_mark=$negative[$m];					
 					}
 					if($secti=="Section4")
 						$secti="Section1";
 					// return $cal['s'];
 					// $a;
-				if($range[$b]-1==$key){
+				if($range[$b]==$key){
 					$a++;
 					if(isset($cal['s'][$a]))
 					$subjects=$cal['s'][$a];
@@ -173,80 +195,147 @@ else
 					// return $subjects.$key;
 				}
 			if($value=="X"){
-				if(isset($ad[$subjects.'_'.$secti]))
-				$ad[$subjects.'_'.$secti]+=$cal['m'][$key];
+				$ad[$subjects][$secti]['Section']=$secti;
+				// if(isset($ad[$subjects][$secti]['Total']))
+				// $ad[$subjects][$secti]['Total']+=$cal['m'][$key];
+				// else
+				// $ad[$subjects][$secti]['Total']=$cal['m'][$key];
+
+				if(isset($ad[$subjects][$secti]['Deleted']))
+				{
+				$ad[$subjects][$secti]['Deleted']+=$cal['m'][$key];
+				}
 				else
-				$ad[$subjects.'_'.$secti]=$cal['m'][$key];
+				{
+				$ad[$subjects][$secti]['Deleted']=$cal['m'][$key];
+				}
 			}
 			elseif($value=="G"){
-				if(isset($ag[$subjects.'_'.$secti]))
-				$ag[$subjects.'_'.$secti]+=$cal['m'][$key];
+				$ad[$subjects][$secti]['Section']=$secti;
+				if(isset($ad[$subjects][$secti]['Total']))
+				$ad[$subjects][$secti]['Total']+=$cal['m'][$key];
 				else
-				$ag[$subjects.'_'.$secti]=$cal['m'][$key];
+				$ad[$subjects][$secti]['Total']=$cal['m'][$key];
+
+				if(isset($ad[$subjects][$secti]['Grace']))
+				$ad[$subjects][$secti]['Grace']+=$cal['m'][$key];
+				else
+				$ad[$subjects][$secti]['Grace']=$cal['m'][$key];
 			}
 			elseif($value=="U"){
-				if(isset($au[$subjects.'_'.$secti]))
-				$au[$subjects.'_'.$secti]+=$cal['m'][$key];
+				$ad[$subjects][$secti]['Section']=$secti;
+				
+				if(isset($ad[$subjects][$secti]['Unattempted']))
+				$ad[$subjects][$secti]['Unattempted']+=$cal['m'][$key];
 				else
-				$au[$subjects.'_'.$secti]=$cal['m'][$key];
+				$ad[$subjects][$secti]['Unattempted']=$cal['m'][$key];
 			}
-			elseif($value=="P"){	   	  
-		   		
-				if(isset($ap[$subjects.'_'.$secti])){
-				$ap[$subjects.'_'.$secti]+=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-				$am[$subjects.'_'.$secti]+=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+			elseif($value=="P"){
+				$ad[$subjects][$secti]['Section']=$secti;
+				
+				if(isset($ad[$subjects][$secti]['Partial'])){
+					if(isset($ad[$subjects][$secti]['Total']))
+				$ad[$subjects][$secti]['Total']+=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				else
+				$ad[$subjects][$secti]['Total']=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+
+				$ad[$subjects][$secti]['Partial']+=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				$ad[$subjects][$secti]['Missed_Partial']+=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
 		   	   $pa++;
 				}
 				else{
-				$ap[$subjects.'_'.$secti]=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
-				$am[$subjects.'_'.$secti]=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+					if(isset($ad[$subjects][$secti]['Total']))
+				$ad[$subjects][$secti]['Total']+=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				else
+				$ad[$subjects][$secti]['Total']=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+
+				$ad[$subjects][$secti]['Partial']=intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
+				$ad[$subjects][$secti]['Missed_Partial']=$cal['m'][$key]-intval(preg_replace('/[^0-9]+/', '',$parr[$pa]));
 		   	   $pa++;
 
 				}
 			}
 			elseif($value=="R"){
-				if(isset($aa[$subjects.'_'.$secti]))
-				$aa[$subjects.'_'.$secti]+=$cal['m'][$key];
+				$ad[$subjects][$secti]['Section']=$secti;
+				if(isset($ad[$subjects][$secti]['Total']))
+				$ad[$subjects][$secti]['Total']+=$cal['m'][$key];
 				else
-				$aa[$subjects.'_'.$secti]=$cal['m'][$key];
+				$ad[$subjects][$secti]['Total']=$cal['m'][$key];				
+
+				if(isset($ad[$subjects][$secti]['Right']))
+				$ad[$subjects][$secti]['Right']+=$cal['m'][$key];
+				else
+				$ad[$subjects][$secti]['Right']=$cal['m'][$key];
 			}
 			else{
-				if(isset($ab[$subjects.'_'.$secti]))
-				$ab[$subjects.'_'.$secti]+=$cal['m'][$key];
+				$ad[$subjects][$secti]['Section']=$secti;
+
+				if(isset($ad[$subjects][$secti]['Total']))
+				$ad[$subjects][$secti]['Total']+=$neg_mark;
 				else
-				$ab[$subjects.'_'.$secti]=$cal['m'][$key];
+				$ad[$subjects][$secti]['Total']=$neg_mark;
+
+				if(isset($ad[$subjects][$secti]['Negative']))
+				$ad[$subjects][$secti]['Negative']+=$neg_mark;
+				else
+				$ad[$subjects][$secti]['Negative']=$neg_mark;
+
+				if(isset($ad[$subjects][$secti]['Wrong']))
+				$ad[$subjects][$secti]['Wrong']+=$cal['m'][$key];
+				else
+				$ad[$subjects][$secti]['Wrong']=$cal['m'][$key];
 			}
 			$sect++;
 
 		}
 		$ar3=$count;
-		foreach ($ar1 as $key => $value) 
-		{
+		// foreach ($ar1 as $key => $value) 
+		// {
 			foreach ($ar2 as $key1 => $value1) 
 			{
 				for ($i=1; $i <=$count ; $i++) 
 				{ 
-					if(!isset($$value[$value1.'_Section'.$i]))
-						$$value[$value1.'_Section'.$i]=0;
+					foreach ($ex as $key2 => $value2) {
+					if(!isset($ad[$value1]['Section'.$i][$value2]))
+						$ad[$value1]['Section'.$i][$value2]=0;
+						
+					}
 				}
 			}
+		// }
+		$a=0;
+		foreach ($ad as $key => $value) 
+		{
+			$ap[$a]['Subject']=$key;
+			for ($i=1; $i <= $count; $i++) { 
+				foreach ($ex as $key1 => $value1) {
+					if(isset($ap[$a][$value1]) && isset($value['Section'.$i][$value1]))
+						$ap[$a][$value1]+=$value['Section'.$i][$value1];
+					elseif(isset($value['Section'.$i][$value1]))
+						$ap[$a][$value1]=$value['Section'.$i][$value1];
+				}
+			}
+			$ap[$a]['Sectiondetails']=array_values($value);
+
+			$a++;
+		
 		}
 
 		return ['Login' => [
                             'response_message'=>"success",
                             'response_code'=>"1",
                             ],
-			"Section_Count"=>$count,
-			"Subjects"=>$ar2,
-			"Right"=>$aa,
-			"Wrong"=>$ab,
-			"Unattempted"=>$au,
-			"Partial"=>$ap,
-			"Grace"=>$ag,
-			"Deleted"=>$ad,
-			"Missed_Partial"=>$am,
-			"Subject_Total"=>$extra,
-			"Exam_Total_Mark"=>$t,
+			"Total"=>$extra,
+			// "Section_Count"=>$count,
+			// "Subjects"=>$ar2,
+			// "Right"=>$aa,
+			// "Wrong"=>$ab,
+			// "Unattempted"=>$au,
+			// "Partial"=>$ap,
+			// "Grace"=>$ag,
+			"Data"=>$ap,
+			// "Missed_Partial"=>$am,
+			// "Exam_Total_Mark"=>$t,
 			"Analysis"=>$analysis,
 		];
 	}
