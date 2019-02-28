@@ -13,7 +13,9 @@ class Type extends Model
 
     public static function teacher_exam_info($data)
     {
-    	$section=DB::table('IP_Exam_Section')->where('EMPLOYEE_ID',Auth::user()->payroll_id)->pluck('SECTION_ID');
+    	$section=DB::table('IP_Exam_Section')
+			    	->where('EMPLOYEE_ID',Auth::user()->payroll_id)
+			    	->pluck('SECTION_ID');
 
     	$exam=Exam::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl','test_code','mode','mark_file_long_string','max_marks')->get();
 
@@ -125,6 +127,7 @@ class Type extends Model
 
 	   		}	   		
 	   	}
+
 	   foreach ($ar2 as $key8 => $value8) 
 	   {
 	   	if(isset($exact_ans['Subject_Total'][strtoupper($ar2[$key8])]))
@@ -141,6 +144,7 @@ class Type extends Model
 
 	   }
 	}
+	// return $exact_ans;
 	       $analysis=static::strongweak($exact_ans,$ar2,$section);
 
 	   return $analysis;
@@ -246,7 +250,7 @@ class Type extends Model
 				$at[$subjects][$secti][$key]=$cal['m'][$key];
 
 
-			if($value=="X"){
+			if($value=="X" || $value=="D"){
 
 				$ad[$subjects][$secti][$key]=$cal['m'][$key];
 			}
@@ -270,12 +274,11 @@ class Type extends Model
 				$aa[$subjects][$secti][$key]=$cal['m'][$key];		
 			}
 			else{
-				if(isset($an[$subjects][$secti][$key]))
-				$an[$subjects][$secti][$key]+=$neg_mark;
-				else
+				
 				$an[$subjects][$secti][$key]=$neg_mark;
 
 				$ast[$subjects][$secti][$key]=$neg_mark;
+				// $ast[$subjects][$secti][$key]=$cal['m'][$key];
 
 				$ab[$subjects][$secti][$key]=$cal['m'][$key];			
 			}
@@ -309,6 +312,10 @@ class Type extends Model
 	}
 	public static function strongweak($ans,$sub,$section)
 	{	
+		$range=DB::table('percentage_range')->where('id',1)->get();
+		$range_from=$range[0]->range_from;
+		$range_to=$range[0]->range_to;
+
 		$cal['s']=$sub;
 		$ar2=$sub;
 
@@ -328,6 +335,7 @@ class Type extends Model
 	   	foreach ($cal['s'] as $key2 => $value2) {
 	   		for ($i=1; $i <=$ans['Section_Count']; $i++) {
 	   			$ans[$ar2[$key2]]['Section'.$i][$ar1[$key]]=number_format((float) ($ans[$ar1[$key]][$ar2[$key2]]['Section'.$i]/$ans['Sectionwise_total'][$ar2[$key2]]['Section'.$i])*100, '2', '.', ''); 
+	   			$ans[$ar2[$key2]]['Section'.$i]['Section']='Sec'.$i;
 
 	   	   		}	
 	   			
@@ -348,19 +356,20 @@ class Type extends Model
 		$a=0;
 		$strong="";
 		$weak="";
+		$average="";
 		$sectionstrong=array();
 		$sectionweak=array();
 		$sectionstrong1=array();
 		$sectionweak1=array();
 		$perc=array();
-		foreach ($cal['s'] as $key => $value) {
-			$perc[$value]=($ans['Subject_Total'][strtoupper($value)]/array_sum($ans['Sectionwise_total'][$value]))*100;
-			if($perc[$value]>=75)
-				$strong.=$value.',';
-			if($perc[$value]<=60)
-				$weak.=$value.',';
-			$a++;
-		}
+		// foreach ($cal['s'] as $key => $value) {
+		// 	$perc[$value]=($ans['Subject_Total'][strtoupper($value)]/array_sum($ans['Sectionwise_total'][$value]))*100;
+		// 	if($perc[$value]>=75)
+		// 		$strong.=$value.',';
+		// 	if($perc[$value]<=60)
+		// 		$weak.=$value.',';
+		// 	$a++;
+		// }
 		// return $perc;
 		unset($ans['Sectionwise_total']);
 		unset($ans['Section_Count']);
@@ -378,33 +387,56 @@ class Type extends Model
 	   }
 	   $ap=array();
 	   $a=0;
+	   $total=0;
 		foreach ($ans as $key => $value) 
 		{
 			$ap[$a]['Subject']=$key;
 			for ($i=1; $i <= $section; $i++) { 
 				foreach ($ar1 as $key1 => $value1) {
 					if(isset($ap[$a][$value1]) && isset($value['Section'.$i][$value1]))
-						$ap[$a][$value1]+=$value['Section'.$i][$value1]/3; 
+						$ap[$a][$value1]+=$value['Section'.$i][$value1]/$section; 
 					elseif(isset($value['Section'.$i][$value1]))
-						$ap[$a][$value1]=$value['Section'.$i][$value1]/3;
+						$ap[$a][$value1]=$value['Section'.$i][$value1]/$section;
 					$ap[$a][$value1]=number_format((float)($ap[$a][$value1]),'2','.','');
-
 				}
+
 			}
+					$total+=($ap[$a]['Total']);
 			$ap[$a]['Sectiondetails']=array_values($value);
 
 			$a++;
 		
+		}
+		foreach ($cal['s'] as $key => $value) {
+			$perc[$value]=$ap[$key]['Total'];
+			if($perc[$value]>$range_to)
+				$strong.=substr($ap[$key]['Subject'],0,3).',';
+			if($perc[$value]<$range_from)
+				$weak.=substr($ap[$key]['Subject'],0,3).',';
+			if($perc[$value]>=$range_from && $perc[$value]<=$range_to)
+				$average.=substr($ap[$key]['Subject'],0,3).',';
+			$a++;
 		}
 		return [
 			'Login' => [
                             'response_message'=>"success",
                             'response_code'=>"1",
                             ],
+			"Total"=>number_format((float)($total/count($cal['s'])),'2','.',''),
 			"Data"=>$ap,
 			// "Extra"=>$ans,
+			"Analysis"=>[
+			"range_from"=>$range_from,
+
+			"range_to"=>$range_to,
+				
 			"weak_subject"=>$weak,
+			// "weak_section"=>$sectionweak,
+			"average_subject"=>$average,
 			"strong_subject"=>$strong,
+			// "strong_section"=>$sectionstrong,
+				],
+			// "strong_subject"=>$strong,
 				];
 	}
 }

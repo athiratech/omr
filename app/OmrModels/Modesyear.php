@@ -16,7 +16,7 @@ class Modesyear extends Model
     	$exam=Exam::where('sl',$data->exam_id)->select('key_answer_file_long_string as CorrectAnswer','model_year','paper','omr_scanning_type','to_from_range','subject_string_final','sl','test_code','mode','mark_file_long_string','max_marks')->get();
     	// return $exam;
     	$table=Mode::where('test_mode_id',$exam[0]->mode)->pluck('marks_upload_final_table_name');
-    	if($ch==1)
+    	if($ch==1 || isset($data->STUD_ID))
     	$result=DB::table($table[0])->where('STUD_ID',$data->STUD_ID)->where('test_code_sl_id',$data->exam_id)->get();
     	else
     	$result=DB::table($table[0])->where('STUD_ID',Auth::id())->where('test_code_sl_id',$data->exam_id)->get();
@@ -54,6 +54,7 @@ else
 	$partial="";
 	$all_sub_marks_array=static::get_marks_string($to_from_range,$mark_file_long_string,$correct);
 	// return str_split($result[0]->Result_String);
+	// return $all_sub_marks_array;
 
       $cal=[
        	"b"=>str_split($result[0]->Result_String),
@@ -121,7 +122,7 @@ else
 				$pa=0;
 
 		if($partial=="")
-		$partial="BCD-3,BD-2,ABD-3,ABC-3,CD-2,CD-2,BD-2,ABD-3,ABC-3,CD-2,CD-2";
+		$partial="BCD-2,BD-2,ABD-3,ABC-3,CD-2,CD-2,BD-2,ABD-3,ABC-3,CD-2,CD-2";
 		$parr=explode(",", $partial);
 
 		$ar1=[
@@ -194,7 +195,7 @@ else
 					$b++;
 					// return $subjects.$key;
 				}
-			if($value=="X"){
+			if($value=="X" || $value=="D"){
 				$ad[$subjects][$secti]['Section']=$secti;
 				// if(isset($ad[$subjects][$secti]['Total']))
 				// $ad[$subjects][$secti]['Total']+=$cal['m'][$key];
@@ -298,6 +299,7 @@ else
 					foreach ($ex as $key2 => $value2) {
 					if(!isset($ad[$value1]['Section'.$i][$value2]))
 						$ad[$value1]['Section'.$i][$value2]=0;
+	   			$ad[$value1]['Section'.$i]['Section']='Sec'.$i;
 						
 					}
 				}
@@ -313,6 +315,7 @@ else
 						$ap[$a][$value1]+=$value['Section'.$i][$value1];
 					elseif(isset($value['Section'.$i][$value1]))
 						$ap[$a][$value1]=$value['Section'.$i][$value1];
+
 				}
 			}
 			$ap[$a]['Sectiondetails']=array_values($value);
@@ -341,6 +344,10 @@ else
 	}
 	public static function strongweak($cal,$ans,$max){
 		/*.......................Subject Wise List............................*/
+		$range=DB::table('percentage_range')->where('id',1)->get();
+		$range_from=$range[0]->range_from;
+		$range_to=$range[0]->range_to;
+		// return $range;
 		if(is_array($cal['s']))
 		{
 			$cal['s']=array_filter($cal['s']);
@@ -349,6 +356,7 @@ else
 		$a=0;
 		$strong="";
 		$weak="";
+		$average="";
 		$sectionstrong=array();
 		$sectionweak=array();
 		$max_marks=explode(',',$max);
@@ -356,10 +364,12 @@ else
 		foreach ($cal['s'] as $key => $value) 
 		{
 			$perc[$value]=($ans[0]->{strtoupper($value)}/$max_marks[$a])*100;
-			if($perc[$value]>=75)
-				$strong.=','.$value;
-			if($perc[$value]<=60)
-				$weak.=$value.',';
+			if($perc[$value]>$range_to)
+				$strong.=substr($value,0,3).',';
+			if($perc[$value]<$range_from)
+				$weak.=substr($value,0,3).',';
+			if($perc[$value]>=$range_from && $perc[$value]<=$range_to)
+				$average.=substr($value,0,3).',';
 			$a++;
 		}
 		/*.......................Section Wise List............................*/
@@ -445,8 +455,11 @@ else
 	// 	unset($sectionstrong[$key]);
 	// }
 		return [
+			"range_from"=>$range_from,
+			"range_to"=>$range_to,
 			"weak_subject"=>$weak,
 			// "weak_section"=>$sectionweak,
+			"average_subject"=>$average,
 			"strong_subject"=>$strong,
 			// "strong_section"=>$sectionstrong,
 				];

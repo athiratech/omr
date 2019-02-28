@@ -4,6 +4,7 @@ namespace App\OmrModels;
 use App\BaseModels\Campus;
 use Auth;
 use File;
+use Illuminate\Http\Request;
 use DB;
 use Illuminate\Database\Eloquent\Model;
 include_once($_SERVER['DOCUMENT_ROOT'].'/sri_chaitanya/Exam_Admin/3_view_created_exam/z_ias_format.php');
@@ -14,6 +15,12 @@ class Exam extends Model
   public $timestamps=false;
   public static function total($data){
     // sleep(10);
+ // return \;
+
+     if(isset($data->date))
+        $date=$data->date;
+        else
+          $date=date("Y-m");
     $res_key=array();
     $mode=array();
     $calculation="";
@@ -33,8 +40,10 @@ class Exam extends Model
 
     if(isset($data->mode_id))
       $exam->where('mode',$data->mode_id);
-    if(isset($data->date))
-      $exam->where('start_date','like',$data->date.'%');
+    // if(isset($data->date))
+    //   $exam->where('start_date','like',$data->date.'%');
+    // else
+      // $exam->where('start_date','like',$date.'%');
     $exam=$exam->get();
 
     foreach ($exam as $key => $value) 
@@ -47,8 +56,11 @@ class Exam extends Model
       ->join('1_exam_admin_create_exam as e','e.sl','=',$subject_marks[0]->marks_upload_final_table_name.'.test_code_sl_id')
             ->whereRaw('STUD_ID ="'.Auth::id().'"')
             ->whereRaw('test_code_sl_id ="'.$value->sl.'"')
-            ->select('test_code_sl_id','STUD_ID','TOTAL','PROGRAM_RANK','STREAM_RANK','SEC_RANK','CAMP_RANK','CITY_RANK','DISTRICT_RANK','STATE_RANK','ALL_INDIA_RANK',DB::raw("DATE_FORMAT(e.start_date,'%d-%m-%Y') as start_date"),'e.test_code','e.max_marks')
-            ->get();
+            ->select('test_code_sl_id','STUD_ID','TOTAL','PROGRAM_RANK','STREAM_RANK','SEC_RANK','CAMP_RANK','CITY_RANK','DISTRICT_RANK','STATE_RANK','ALL_INDIA_RANK',DB::raw("DATE_FORMAT(e.start_date,'%d-%m-%Y') as start_date"),'e.test_code','e.max_marks');
+            if(\Request::segment(2)=="examlist")
+             $exam_data->where('start_date','like',$date.'%');
+
+            $exam_data=$exam_data->get();
             foreach ($exam_data as $keya => $valuea) {
               $exam_data[$keya]->DISTOTAL=(int)$valuea->TOTAL."/".array_sum(explode(',',$valuea->max_marks));
             }
@@ -161,16 +173,20 @@ class Exam extends Model
    if($correctans[0]->omr_scanning_type=='advanced')
    {
     $result_string=Mode::where('test_mode_id',$correctans[0]->mode)->pluck('marks_upload_final_table_name')[0];
-    $Result=DB::table($result_string)->where('test_code_sl_id',$data->exam_id)->where('STUD_ID',Auth::user()->ADM_NO)->pluck('Result_String')[0];
+    $Result=DB::table($result_string)->where('test_code_sl_id',$data->exam_id)->where('STUD_ID',Auth::user()->ADM_NO)->pluck('Result_String');
+    if(!isset($Result[0]))
+      $Result=DB::table($result_string)->where('test_code_sl_id',$data->exam_id)->where('STUD_ID',$data->STUD_ID)->pluck('Result_String');
      $filedata=ias_model_year_paper($correctans[0]->model_year,$correctans[0]->paper);
      $marked=static::AnswerObtain($data,$correctans,array_filter($filedata[1]));
      // return $Result;
-     return static::AdvanceAnswer($filedata,$correctans,$marked,$data->subject_id,$Result);
+     return static::AdvanceAnswer($filedata,$correctans,$marked,$data->subject_id,$Result[0]);
     }
     else
     {
       $result_string=Mode::where('test_mode_id',$correctans[0]->mode)->pluck('marks_upload_final_table_name')[0];
-    $Result=DB::table($result_string)->where('test_code_sl_id',$data->exam_id)->where('STUD_ID',Auth::user()->ADM_NO)->pluck('Result_String')[0];
+    $Result=DB::table($result_string)->where('test_code_sl_id',$data->exam_id)->where('STUD_ID',Auth::user()->ADM_NO)->pluck('Result_String');
+    if(!isset($Result))
+      $Result=DB::table($result_string)->where('test_code_sl_id',$data->exam_id)->where('STUD_ID',$data->STUD_ID)->pluck('Result_String');
      $marked=static::AnswerObtain($data,$correctans,$type);
 
       $subj=array();
@@ -184,7 +200,7 @@ class Exam extends Model
       $filedata[0]=$subj;
       $filedata[9]=explode(',',$correctans[0]->subject_string_final);
 
-       return static::NonAdvanceAnswer($filedata,$correctans,$marked,$data->subject_id,$Result);
+       return static::NonAdvanceAnswer($filedata,$correctans,$marked,$data->subject_id,$Result[0]);
     }
 
   }
@@ -371,7 +387,7 @@ class Exam extends Model
     if($ans[0]->omr_scanning_type=="advanced")
     {
     $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$ans[0]->sl.'/final/'.Auth::user()->CAMPUS_ID.'.iit';
-    $astring=static::advanced($path,$ans[0]->sl);
+    $astring=static::advanced($path,$ans[0]->sl,$data);
 
      $answer=explode(',', $astring['Line']);
       $a=1;
@@ -381,7 +397,7 @@ class Exam extends Model
     else
     {
     $path='/var/www/html/sri_chaitanya/College/3_view_created_exam/uploads/'.$ans[0]->sl.'/final/'.Auth::user()->CAMPUS_ID.'.dat';
-    $astring=static::nonadvanced($path,$ans[0]->sl);
+    $astring=static::nonadvanced($path,$ans[0]->sl,$data);
      if(count($astring))
      $answer1=explode('   ', $astring['Line']);
       $a=1;
@@ -420,7 +436,7 @@ class Exam extends Model
 
 
 // ADVANCED
-public static function advanced($filename,$sl){
+public static function advanced($filename,$sl,$data){
 if(!File::exists($filename))
   return ["Line"=>"file not found"];
 else
@@ -480,6 +496,29 @@ foreach ($lines as $line_num => $line)
       continue;
     }
         }
+           elseif(substr($data->STUD_ID,2)==trim($current_usn)){
+         if($current_usn_flag=="blank"){
+    return [
+      "Flag"=>$current_usn_flag,
+      "USN"=>$current_usn,
+      "Line"=>$line,
+            ];
+          }
+    elseif($current_usn_flag=="A"){
+      $approve=DB::table('101_mismatch_approval_request')->where('STUD_ID',$data->STUD_ID)->where('test_sl',$sl)->where('status',1)->get();
+      if(count($approve))
+        return [
+            "Flag"=>$current_usn_flag,
+            "USN"=>$current_usn,
+            "Line"=>$line,
+                  ];
+                  else
+                    continue;
+    }
+    else{
+      continue;
+    }
+      }
 
       
   }
@@ -487,7 +526,7 @@ foreach ($lines as $line_num => $line)
 
 
   //NON ADVANCED--------------------------
-public static function nonadvanced($filename,$sl){
+public static function nonadvanced($filename,$sl,$data){
 
   $lines = file($filename);
 
@@ -558,6 +597,31 @@ for($in=0;$in<$it;$in=$in+4)
     else{
       continue;
     }
+      }
+      elseif(substr($data->STUD_ID,2)==trim($current_usn)){
+         if($current_usn_flag=="blank"){
+    return [
+    "Flag"=>$current_usn_flag,
+    "USN"=>$current_usn,
+    "Line"=>$ansline,
+          ];
+        }
+     elseif($current_usn_flag=="A"){
+  $approve=DB::table('101_mismatch_approval_request')->where('STUD_ID',$data->STUD_ID)->where('test_sl',$sl)->where('status',1)->get();
+  if(count($approve)!=0){
+    return [
+        "Flag"=>$current_usn_flag,
+        "USN"=>$current_usn,
+        "Line"=>$ansline,
+              ];
+            }
+            else{
+              continue;
+            }
+       }
+    else{
+      continue;
+    } 
       }
 
    }

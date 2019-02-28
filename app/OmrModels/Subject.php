@@ -110,7 +110,7 @@ class Subject extends Model
                             $examlist[$key]['test_code']=$value->test_code;
                             $data1=new \stdClass(); 
                             $data1->exam_id=$value->sl;
-                            $examlist[$key]['Total_percentage']=22;
+                            $examlist[$key]['Total_percentage']=Type::teacher_exam_info($data1)['Total'];
                             // $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
                             //date("d-m-Y", strtotime($originalDate));
                             $examlist[$key]['test_sl']=$value->sl;
@@ -126,7 +126,7 @@ class Subject extends Model
                             $examlist[$key]['test_code']=$value->test_code;
                             $data1=new \stdClass(); 
                             $data1->exam_id=$value->sl;
-                            $examlist[$key]['Total_percentage']=21;
+                            $examlist[$key]['Total_percentage']=Type::teacher_exam_info($data1)['Total'];
                             // $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
                             
                             $examlist[$key]['test_sl']=$value->sl;
@@ -161,14 +161,14 @@ class Subject extends Model
                     if(count($student)==0)
                      return [
                         'Login' => [
-                            'response_message'=>"Student Record Not found for this Exam_Id",
+                            'response_message'=>"Student Record Not found",
                             'response_code'=>"0"
                            ],
                     ];
                     if(!isset($student[0]))
                        return [
                         'Login' => [
-                            'response_message'=>"Student Record Not found for this Subject_id",
+                            'response_message'=>"Student Record Not found",
                             'response_code'=>"0"
                            ],
                     ];
@@ -195,6 +195,7 @@ class Subject extends Model
                       $studentlist[$i]['DISTRICT_RANK']=$student[$j]['obtained'][$i]->DISTRICT_RANK;
                       $studentlist[$i]['STATE_RANK']=$student[$j]['obtained'][$i]->STATE_RANK;
                       $studentlist[$i]['ALL_INDIA_RANK']=$student[$j]['obtained'][$i]->ALL_INDIA_RANK;
+                      $studentlist[$i]['CAMPUS_ID']=$student[$j]['obtained'][$i]->this_college_id;
                       $studentlist[$i]['TOTAL']=$student[$j]['obtained'][$i]->{strtoupper($subject_name)}.'/'.$student[$j]['max_marks'];
                       // $studentlist[$i][strtoupper($subject_name)]=$student[$j]['obtained'][$i]->{strtoupper($subject_name)};
                       
@@ -209,9 +210,12 @@ class Subject extends Model
                     return [
 
                      'Login' => [
-                            'response_message'=>"exam_id required",
-                            'response_code'=>"0",
+                            'response_message'=>"success",
+                            'response_code'=>"1",
                             ],
+                            "Data"=>array(),
+                            "Totalpage"=>0,
+                            "Block_Count"=>0,
                           ];
                   return [
 
@@ -287,6 +291,17 @@ class Subject extends Model
             if(is_array($filedata[0])){
               $table="101_MPC_MARKS";
             $a[]=array_values(array_filter($filedata[0]));
+            if(count($b[$key])!=count($a[$key]))
+                 return ['Result'=>['Login' => [
+                            'response_message'=>"No record found for this information",
+                            'response_code'=>"0",
+                            ]],'ExamList'=>$examlist
+                            ,'StudentList'=>['Login' => [
+                            'response_message'=>"No record found for this information",
+                            'response_code'=>"0",
+                            ]],
+                          ];
+                          // return ['Result'=>$a];
             $max[]=array_combine((array)$a[$key],$b[$key]);
             $list=$max[$key][strtoupper($subject_name)];
 
@@ -328,9 +343,9 @@ class Subject extends Model
                             ]],
                           ];
               if($exam_id !="0")
-            $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,PROGRAM_RANK,STREAM_RANK,SEC_RANK,CAMP_RANK,CITY_RANK,DISTRICT_RANK,STATE_RANK,ALL_INDIA_RANK,st.NAME,st.SURNAME from ".$table."  as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$exam_id."' and `st`.`SECTION_ID`='".$section_id."'"); 
+            $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,PROGRAM_RANK,STREAM_RANK,SEC_RANK,CAMP_RANK,CITY_RANK,DISTRICT_RANK,STATE_RANK,ALL_INDIA_RANK,st.NAME,st.SURNAME,this_college_id from ".$table."  as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$exam_id."' and `st`.`SECTION_ID`='".$section_id."'"); 
           else
-          $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,PROGRAM_RANK,STREAM_RANK,SEC_RANK,CAMP_RANK,CITY_RANK,DISTRICT_RANK,STATE_RANK,ALL_INDIA_RANK,st.NAME,st.SURNAME from ".$table." as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$value->test_sl."' and `st`.`SECTION_ID` in (".implode(',',$section1).")");
+          $res=DB::select("select (".$list1."/".$list.")*100 as percentage,a.STUD_ID,test_code_sl_id,st.SECTION_ID,".$list1.",ts.section_name,test_code,start_date,PROGRAM_RANK,STREAM_RANK,SEC_RANK,CAMP_RANK,CITY_RANK,DISTRICT_RANK,STATE_RANK,ALL_INDIA_RANK,st.NAME,st.SURNAME,this_college_id from ".$table." as `a` inner join `t_student` as `st` on `st`.`ADM_NO` = `a`.`STUD_ID` inner join t_college_section as ts on ts.SECTION_ID=st.SECTION_ID inner join 1_exam_admin_create_exam as ex on ex.sl=test_code_sl_id where `test_code_sl_id` = '".$value->test_sl."' and `st`.`SECTION_ID` in (".implode(',',$section1).")");
 
            $studentlist[$key]['obtained']=$res;
            $studentlist[$key]['max_marks']=$list;
