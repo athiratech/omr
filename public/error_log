@@ -1,0 +1,1 @@
+[09-Aug-2018 16:38:50 UTC] PHP Fatal error:  Can't use function return value in write context in /home/poojit24/public_html/athiratechnologies.com/omr/app/Http/Controllers/AuthController.php on line 38
