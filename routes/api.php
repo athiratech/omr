@@ -22,6 +22,8 @@ use Illuminate\Http\Request;
 	Route::post('userLogin', 'AuthController@tokenAuthAttempt');
 	Route::post('uploadResults','AuthController@upload');
 	/*OMR Result Application*/
+		Route::get('sendmessage','OmrControllers\ResultController@sendmessage');
+	
 	Route::post('resultLogin', 'OmrControllers\ResultController@login');
 	Route::group([ 'middleware' => 'auth:token' ], function () 
 	{	

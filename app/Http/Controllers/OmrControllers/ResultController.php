@@ -90,4 +90,9 @@ class ResultController extends Controller
                  "Data"=>$arr
                 ];
     }  
+    public function sendmessage(Request $request){
+        $res=Fcmtoken::sendmessage($request);
+        return $res;
+
+    }
 }

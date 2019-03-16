@@ -111,7 +111,19 @@ class Subject extends Model
                             $examlist[$key]['test_code']=$value->test_code;
                             $data1=new \stdClass(); 
                             $data1->exam_id=$value->sl;
+                             if(isset(Type::teacher_exam_info($data1)['Total']))
                             $examlist[$key]['Total_percentage']=Type::teacher_exam_info($data1)['Total'];
+                            else
+                              return [
+                                     'Login' => [
+                                            'response_message'=>"success",
+                                            'response_code'=>"1",
+                                            ],
+                                            "Exam_date"=>date('Y-M',strtotime($date)),
+                                    "Totalpage"=>0,
+                                    "Block_Count"=>0,
+                                    "Exam"=>array(),
+                                    ]; 
                             // $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
                             //date("d-m-Y", strtotime($originalDate));
                             $examlist[$key]['test_sl']=$value->sl;
@@ -127,7 +139,19 @@ class Subject extends Model
                             $examlist[$key]['test_code']=$value->test_code;
                             $data1=new \stdClass(); 
                             $data1->exam_id=$value->sl;
+                            if(isset(Type::teacher_exam_info($data1)['Total']))
                             $examlist[$key]['Total_percentage']=Type::teacher_exam_info($data1)['Total'];
+                            else
+                              return [
+                                   'Login' => [
+                                          'response_message'=>"success",
+                                          'response_code'=>"1",
+                                          ],
+                                          "Exam_date"=>date('Y-M',strtotime($date)),
+                                  "Totalpage"=>0,
+                                  "Block_Count"=>0,
+                                  "Exam"=>array(),
+                                   ];
                             // $examlist[$key]['Exam_Info']=Type::teacher_exam_info($data1);
                             
                             $examlist[$key]['test_sl']=$value->sl;
@@ -144,7 +168,7 @@ class Subject extends Model
                             'response_message'=>"success",
                             'response_code'=>"1",
                             ],
-                            "Exam_date"=>$date,
+                            "Exam_date"=>date('Y-M',strtotime($date)),
                     "Totalpage"=>ceil((count($exam))/($block_no[0]+1)),
                     "Block_Count"=>$block_no[0],
                     "Exam"=>$examlist,
@@ -410,6 +434,7 @@ class Subject extends Model
                     ->join('t_college_section as cs','is.SECTION_ID','=','cs.SECTION_ID')
                     ->where('is.EMPLOYEE_ID',Auth::user()->payroll_id)
                     ->select('is.SECTION_ID','cs.section_name')
+                    ->distinct('is.SECTION_ID','cs.section_name')
                     ->get();
       return ['Login' => [
                             'response_message'=>"success",

@@ -50,7 +50,7 @@ $group=DB::table('IP_Exam_Section as s')->join('t_college_section as tc','s.SECT
 $query=groups::distinct('GROUP_ID')->orderBy('GROUP_ID');
         if(count($group)!=0)
         $query->whereIn('GROUP_ID',$group);
-    $query->orwhere('GROUP_ID','4');
+    $query->orwhere('GROUP_ID','5');
         $query=$query->get();
         $data=new GroupCollection($query);
         // $data1=array_merge(['GROUP_ID'=>5,'GROUP_NAME'=>"MPC"],['GROUP_ID'=>5,'GROUP_NAME'=>"MPC"]);
@@ -118,7 +118,7 @@ $query=groups::distinct('GROUP_ID')->orderBy('GROUP_ID');
         // where('STREAM_ID', '=',$stream_id);
         //     ->where('CLASS_ID',$class_id);
         // if(count($program))
-        $query=Program::whereIn('PROGRAM_ID',$program);
+        $query=Program::whereIn('PROGRAM_ID',$program)->orwhere('PROGRAM_ID','1');
         $query=$query->get();
         $data=new ProgramCollection($query); 
         return [

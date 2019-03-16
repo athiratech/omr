@@ -108,7 +108,7 @@ class Result extends Authenticatable
                     'SURNAME'=>ucfirst(strtolower(Auth::guard('t_student')->user()->SURNAME)),
                     'USER'=>'STUDENT',
                     'CAMPUS_NAME'=>ucfirst(strtolower($campus[0])),
-                    'GROUP'=>Auth::guard('t_student')->user()->GROUP_NAME,
+                    'GROUP'=>Auth::guard('t_student')->user()->GROP,
                     // 'SUBJECT'=>Auth::guard('t_student')->user()->SUBJECT,
                     'PROGRAM_NAME'=>Program::where('PROGRAM_ID',Auth::guard('t_student')->user()->PROGRAM_ID)->pluck('PROGRAM_NAME')[0],
                     'CLASS_NAME'=>StudyClass::where('CLASS_ID',Auth::guard('t_student')->user()->CLASS_ID)->pluck('CLASS_NAME')[0],
@@ -225,74 +225,68 @@ class Result extends Authenticatable
 
    public static function notify($token, $title,$USERNAME,$user_type)
    {
-    $fcm="";
-    $notify="";
-       $fcmUrl = 'total_percentage';
-       $token=$token;
-       $body='{"group_id": "5","class_id": "1","stream_id": "2","program_id": "1","subject_id": "3"}';
-       $url='total_percentage';
+    // $fcm="";
+    // $notify="";
+    //    $fcmUrl = 'https://fcm.googleapis.com/fcm/send';
+    //    $token=$token;
+    //    $body='{"group_id": 5,"class_id": 1,"stream_id": 2,"program_id": 1,"subject_id": 3,"mode_id":2,"test_type":1,"exam_id":2,"STUD_ID":"178041343","section_id":"78322","page":1,"user_type":"employee","USERID":"AMP100050","date":"2018-11"}';
+    //    $url='total_percentage';
 
-       $notification = [
-           'title' => $title,
-           'parameter'=>$body,
-           'url'=>$url,
-           "notify_type"=>'Exam Created',
-           // 'sound' => true,
-       ];
-        $se=Sendnotifications::where('USERID',$USERNAME)->get();
+    //    $notification = [
+    //        'title' => $title,
+    //        'parameter'=>$body,
+    //        'url'=>$url,
+    //        "notify_type"=>'Exam Created',
+    //    ];
+        // $se1=Sendnotifications::where('USERID',$USERNAME)->get();
        $check1=Fcmtoken::where('token',$token)->where('USERID',$USERNAME)->pluck('id');
        if(!isset($check1[0]))
       $fcm=Fcmtoken::create(['token'=>$token,'USERID'=>$USERNAME,'user_type'=>$user_type]);
 
-       $notify=Notifymessage::create($notification);
-      //  // return $notify;
-      //  // dd($fcm->USERID);
+    //    $notify=Notifymessage::create($notification);
 
-       if(isset($notify->id) && isset($fcm->id) && isset($se->id)){
-       $send=Sendnotifications::create([
-        "notification_ids"=>$notify->id,
+    //    if(isset($notify->id) && isset($fcm->id) && isset($se1->id)){
+    //    $send=Sendnotifications::create([
+    //     "notification_ids"=>$notify->id,
         
-        "USERID"=>$USERNAME,
-                                        ]);
-       }
-       else{
-        $se=Sendnotifications::where('USERID',$USERNAME)->get();
-           $send=Sendnotifications::where([
-          "USERID"=>$se[0]->USERID,])->update([
-          "notification_ids"=>$se[0]->notification_ids.','.$notify->id,
-         ]
-                                          );
-         }
+    //     "USERID"=>$USERNAME,
+    //                                     ]);
+    //    }
+    //    else{
+    //     $se=Sendnotifications::where('USERID',$USERNAME)->get();
+    //        $send=Sendnotifications::where([
+    //       "USERID"=>$se[0]->USERID,])->update([
+    //       "notification_ids"=>$se[0]->notification_ids.','.$notify->id,
+    //      ]
+    //                                       );
+    //      }
 
        
-       $extraNotificationData = ["message" => $notification,"moredata" =>'dd'];
+    //    $extraNotificationData = ["message" => $notification,"moredata" =>'dd'];
 
-       $fcmNotification = [
-           //'registration_ids' => $tokenList, //multple token array
-           'to'        => $token, //single token
-           'data' => $notification
-           // 'data' => $extraNotificationData
-       ];
+    //    $fcmNotification = [
+    //        'to'        => $token,
+    //        'data' => $notification
+    //    ];
 
-       $headers = [
-           'Authorization: key=AAAAKOCFNDk:APA91bGymao4PPgiubS42HVwSF0Ifbvuz546g7SpN03dky2I2QEf0dm3_qfOMjeGDzy91zU_YNEFme7UwJsKQ8su5ShokzmNxxkQn_IXM6J92qtVcusy7Hp3HnhADYGs5qs3U9qsFJTD',
-           'Content-Type: application/json'
-       ];
-       // server key:key=AAAAgW6xtJw:APA91bFn9h-riLkwrk38rgiFpdeGZU5WZttH6TLy8aqmmfN8JWkbqIubri8nzjcsCZVZWZWNYYsgi4kfdmR_yU2G9O8xyuZ7clgSyF6Ahqiie-0h2qeDQ2yrtafCkOYMS4HZ7xZ6aUOy
+    //    $headers = [
+    //        'Authorization: key=AAAAKOCFNDk:APA91bGymao4PPgiubS42HVwSF0Ifbvuz546g7SpN03dky2I2QEf0dm3_qfOMjeGDzy91zU_YNEFme7UwJsKQ8su5ShokzmNxxkQn_IXM6J92qtVcusy7Hp3HnhADYGs5qs3U9qsFJTD',
+    //        'Content-Type: application/json'
+    //    ];
 
+    //    $ch = curl_init();
+    //    curl_setopt($ch, CURLOPT_URL,$fcmUrl);
+    //    curl_setopt($ch, CURLOPT_POST, true);
+    //    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    //    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    //    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    //    curl_setopt($ch, CURLOPT_TIMEOUT, 1000);
+    //    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fcmNotification));
+    //    $result = curl_exec($ch);
+    //    curl_close($ch);
 
-       $ch = curl_init();
-       curl_setopt($ch, CURLOPT_URL,$fcmUrl);
-       curl_setopt($ch, CURLOPT_POST, true);
-       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-       curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-       curl_setopt($ch, CURLOPT_TIMEOUT, 1000);
-       curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fcmNotification));
-       $result = curl_exec($ch);
-       curl_close($ch);
-
-       return $result;
+    //    return $result;
+    return true;
    }
 
    
