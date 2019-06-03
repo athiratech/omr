@@ -107,7 +107,11 @@ else
 		// return $cal['s'];
 		$m=3;
 		$negative=explode(',', $mark_file_long_string);
+		if($negative[$m]>0)
+		$neg_mark=-$negative[$m];
+		else
 		$neg_mark=$negative[$m];
+
 		$ex=[
 			"Right",
 			"Wrong",
@@ -182,6 +186,10 @@ else
 					$count++;
 					$section=$cal['se'][$sect];
 					$secti="Section".$count;
+					// $neg_mark=$negative[$m];
+					if($negative[$m]>0)
+					$neg_mark=-$negative[$m];
+					else
 					$neg_mark=$negative[$m];					
 					}
 					if($secti=="Section4")
@@ -318,6 +326,9 @@ else
 
 				}
 			}
+			if(count($value)==1)
+			$ap[$a]['Sectiondetails']=array();
+			else
 			$ap[$a]['Sectiondetails']=array_values($value);
 
 			$a++;

@@ -32,6 +32,8 @@ class Result extends Authenticatable
    public static function login($data){
          $msg="This is old token";
          $campus="";
+        self::notify('eM3WksK8ETs:APA91bHwZ2B42iDs8cyDj4JSrZONtoGEV7RsocQSm4--8PHtXo_Pc8zWr5-i2u0MIfVhvit8ik9TWdlYb-Jg-D3EUdfx5eDApqYg7StMK0OXwXYglNSyFf_Ki88TJxbhjCnI7fQ4_JRy','hello muthu im from firebase');
+
          //Login with three driver for different login
         if($data->user_type=="employee")
         {
@@ -95,6 +97,9 @@ class Result extends Authenticatable
             }
         }
                   elseif(Auth::guard('t_student')->id()){
+
+   
+
            $campus=Campus::where('CAMPUS_ID',Auth::guard('t_student')->user()->CAMPUS_ID)->pluck('CAMPUS_NAME');
                 $details=[
                     'NAME'=>ucfirst(strtolower(Auth::guard('t_student')->user()->NAME)),
@@ -214,4 +219,45 @@ class Result extends Authenticatable
         }
 
    }
+
+   public static function notify($token, $title)
+   {
+       $fcmUrl = 'https://fcm.googleapis.com/fcm/send';
+       $token=$token;
+
+       $notification = [
+           'title' => $title,
+           'sound' => true,
+       ];
+       
+       $extraNotificationData = ["message" => $notification,"moredata" =>'dd'];
+
+       $fcmNotification = [
+           //'registration_ids' => $tokenList, //multple token array
+           'to'        => $token, //single token
+           'data' => $notification
+           // 'data' => $extraNotificationData
+       ];
+
+       $headers = [
+           'Authorization: key=AAAAKOCFNDk:APA91bGymao4PPgiubS42HVwSF0Ifbvuz546g7SpN03dky2I2QEf0dm3_qfOMjeGDzy91zU_YNEFme7UwJsKQ8su5ShokzmNxxkQn_IXM6J92qtVcusy7Hp3HnhADYGs5qs3U9qsFJTD',
+           'Content-Type: application/json'
+       ];
+       // server key:key=AAAAgW6xtJw:APA91bFn9h-riLkwrk38rgiFpdeGZU5WZttH6TLy8aqmmfN8JWkbqIubri8nzjcsCZVZWZWNYYsgi4kfdmR_yU2G9O8xyuZ7clgSyF6Ahqiie-0h2qeDQ2yrtafCkOYMS4HZ7xZ6aUOy
+
+
+       $ch = curl_init();
+       curl_setopt($ch, CURLOPT_URL,$fcmUrl);
+       curl_setopt($ch, CURLOPT_POST, true);
+       curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+       curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+       curl_setopt($ch, CURLOPT_TIMEOUT, 1000);
+       curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($fcmNotification));
+       $result = curl_exec($ch);
+       curl_close($ch);
+
+       return $result;
+   }
+
 }
